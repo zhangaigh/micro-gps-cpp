@@ -430,7 +430,7 @@ int test_gps (int argc, char const *argv[]) {
 
   Database* dataset = new Database(dataset_path);
   dataset->loadDatabase();
-  dataset->loadTestData();
+  dataset->loadDefaultTestSequence();
 
   MicroGPS* micro_gps = new MicroGPS();
   micro_gps->loadDatabaseOnly(dataset);

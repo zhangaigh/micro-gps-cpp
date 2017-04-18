@@ -17,3 +17,15 @@ construct grids (fixed size)
 Online:
 match descriptors
 vote image locations
+
+
+----------------
+2017-04-17 v2
+
+Goals:
+- better gui.cpp. the exe should support:
+  - GUI with controls
+  - GUI with parameters passed by command line
+  - pure command line
+
+- automatically use pre-extracted sift feature

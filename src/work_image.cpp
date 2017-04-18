@@ -1154,7 +1154,7 @@ int test_warp_image_array(int argc, char const *argv[]) {
   std::string s = "/Users/lgzhang/Documents/DATA/micro_gps_packed/fc_hallway_long_packed";
   Database* database = new Database(s.c_str());
   database->loadDatabase();
-  database->loadTestData();
+  database->loadDefaultTestSequence();
 
   int n_images = database->getDatabaseSize();
   // int n_images = 10;

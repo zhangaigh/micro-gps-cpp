@@ -8,14 +8,23 @@
 
 
 
-Database::Database(const char* packed_data_path):
-m_packed_data_path(packed_data_path)
+Database::Database(const char* packed_data_path)
+// m_packed_data_path(packed_data_path)
 {
+  strcpy(m_packed_data_path, packed_data_path);
 }
 
 
 Database::~Database() {
+  for (size_t i = 0; i < m_database_images.size(); i++) {
+    delete[] m_database_images[i];
+  }
+  m_database_images.clear();
 
+  for (size_t i = 0; i < m_test_images.size(); i++) {
+    delete[] m_test_images[i];
+  }
+  m_test_images.clear();
 
 }
 
@@ -77,37 +86,17 @@ void Database::loadDatabasePrecomputedFeatures(const char* filename) {
 }
 
 
-void Database::loadTestData() {
-  m_test_images.clear();
-  char p[256];
-
-  sprintf(p, "%s/test.txt", m_packed_data_path);
-  printf("%s\n", p);
-
-  char line[256];
-  FILE* fp = fopen(p, "r");
-  while (fgets(line, sizeof(line), fp) != NULL) {
-    char tmp_path[256];
-    sscanf(line, "%s\n", tmp_path);
-
-    char* im_path = new char[256];
-    sprintf(im_path, "%s/%s", m_packed_data_path, tmp_path);
-    m_test_images.push_back(im_path);
-    // printf("%s\n", im_path);
-  }
-
-  fclose(fp);
-
-}
-
-
 void Database::loadDefaultTestSequence() {
   this->loadTestSequenceByName("test.txt");
 }
 
 
 void Database::loadTestSequenceByName(const char* filename) {
+  for (int i = 0; i < m_test_images.size(); i++) {
+    delete[] m_test_images[i];
+  }
   m_test_images.clear();
+
   char p[256];
 
   sprintf(p, "%s/%s", m_packed_data_path, filename);

@@ -2,16 +2,18 @@ include_directories(gl3w)
 add_subdirectory(gl3w)
 
 set(GUI_SRCS
-  imgui_impl_glfw_gl3.cpp
-  gui.cpp
+  # imgui_impl_glfw_gl3.cpp
+  # gui.cpp
+  micro_gps_exec.cpp
 )
 
+
 if(ON_MAC)
-  add_executable(opengl3_gui ${GUI_SRCS})
-  target_link_libraries(opengl3_gui
-                        glfw3
-                        gl3w
-                        imgui
+  add_executable(micro_gps_exec ${GUI_SRCS})
+  target_link_libraries(micro_gps_exec
+                        # glfw3
+                        # gl3w
+                        # imgui
                         mgps
                         gflags)
 
@@ -19,8 +21,7 @@ if(ON_MAC)
     imgui_impl_glfw_gl3.cpp
     online_gui.cpp
     robot.cpp
-    gui_helper.cpp
-  )
+    gui_helper.cpp)
 
   add_executable(online_gui ${ONLINE_GUI_SRCS})
   target_link_libraries(online_gui
@@ -34,8 +35,7 @@ if(ON_MAC)
     imgui_impl_glfw_gl3.cpp
     monitor.cpp
     robot.cpp
-    gui_helper.cpp
-  )
+    gui_helper.cpp)
 
   add_executable(monitor ${MONITOR_SRCS})
   target_link_libraries(monitor

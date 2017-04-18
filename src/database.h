@@ -10,7 +10,7 @@ public:
   ~Database();
 
   void loadDatabase();
-  void loadTestData();
+  // void loadTestData();
   void loadDefaultTestSequence();
   void loadTestSequenceByName(const char*);
 
@@ -27,7 +27,8 @@ public:
   char* getTestPrecomputedFeatures(int idx);
 
 private:
-  const char* m_packed_data_path;
+  // const char* m_packed_data_path;
+  char m_packed_data_path[256];
 
   // database
   std::vector<Eigen::Matrix3f> m_database_poses;

@@ -141,12 +141,6 @@ void MicroGPS::computePCABasis() {
 }
 
 void MicroGPS::PCAreduction(int num_dimensions_to_keep) {
-  // Eigen::MatrixXf mean_deducted = m_features.rowwise() - m_features.colwise().mean();
-
-  // Eigen::JacobiSVD<Eigen::MatrixXf> svd(mean_deducted, Eigen::ComputeThinV);
-
-  // m_PCA_basis = svd.matrixV();
-
   printf("MicroGPS::PCAreduction(): PCA basis size: %ld x %ld\n", m_PCA_basis.rows(), m_PCA_basis.cols());
 
   Eigen::MatrixXf PCA_basis_k_cols = m_PCA_basis.leftCols(num_dimensions_to_keep);
@@ -201,90 +195,10 @@ void MicroGPS::preprocessDatabaseImages (int num_samples_per_image, float image_
   m_feature_scales.resize(cnt);
   m_features.conservativeResize(cnt, 128);
   m_feature_local_location.conservativeResize(cnt, 4);
-  // // remove duplicated features   
-  // flann::Matrix<float> descriptors_flann = flann::Matrix<float>(new float[m_features.rows() * m_features.cols()],
-  //                                                                         m_features.rows(),
-  //                                                                         m_features.cols());
-
-  // // copy data
-  // for (int i = 0; i < m_features.rows(); i++) {
-  //   for (int j = 0; j < m_features.cols(); j++) {
-  //     descriptors_flann[i][j] = m_features(i, j);
-  //   }
-  // }
-
-  // flann::KDTreeIndexParams params;
-  // flann::Index<L2<float> > descriptors_search_index(descriptors_flann, params);
-  // descriptors_search_index.buildIndex();
-
-
-  // flann::Matrix<int> flann_index(new int[m_features.rows() * 2], m_features.rows(), 2);
-  // flann::Matrix<float> flann_dist(new float[m_features.rows() * 2], m_features.rows(), 2);
-  
-  // descriptors_search_index.knnSearch(descriptors_flann, flann_index, flann_dist, 2, SearchParams(64));
-
-  // Eigen::MatrixXf features_shrinked(cnt, 128);
-  // std::vector<Eigen::Matrix3f> feature_poses_shrinked(cnt);
-  // std::vector<int> feature_image_idx_shrinked(cnt);
-  // std::vector<float> feature_scales_shrinked(cnt);
-  // std::vector<bool> to_discard(cnt, false);
- 
-  // for (int i = 0; i < m_features.rows(); i++) {
-  //   if (to_discard[i]) {
-  //     continue;
-  //   }
-  //   for (int k = 0; k < 2; k++) {
-  //     int nn_idx = flann_index[i][k];
-  //     if (nn_idx != i) {
-  //       if ((m_feature_poses[nn_idx].col(2) - m_feature_poses[i].col(2)).norm() < 8.0f) { // less than 8 pixels
-  //         Eigen::Matrix3f pose_i = m_database->getDatabasePose(m_feature_image_idx[i]);
-  //         Eigen::Matrix3f pose_nn = m_database->getDatabasePose(m_feature_image_idx[nn_idx]);
-  //         Eigen::Vector3f center_loc;
-  //         center_loc(0) = (float)m_image_width / 2;
-  //         center_loc(1) = (float)m_image_height / 2;
-  //         center_loc(2) = 1.0f;
-  //         Eigen::Vector3f center_i = pose_i * center_loc;
-  //         Eigen::Vector3f center_nn = pose_nn * center_loc;
-  //         float dist_i = (center_i - m_feature_poses[i].col(2)).norm();
-  //         float dist_nn = (center_nn - m_feature_poses[nn_idx].col(2)).norm();
-  //         if (dist_i < dist_nn) {
-  //           to_discard[nn_idx] = true;            
-  //         }          
-  //       } 
-  //     }
-  //   }
-  // }
-  
-  // cnt = 0;
-  // for (int i = 0; i < m_features.rows(); i++) {
-  //   if (!to_discard[i]) {
-  //     features_shrinked.row(cnt) = m_features.row(i); 
-  //     feature_poses_shrinked[cnt] = m_feature_poses[i];
-  //     feature_image_idx_shrinked[cnt] = m_feature_image_idx[i];
-  //     feature_scales_shrinked[cnt] = m_feature_scales[i];
-  //     cnt++;
-  //   }
-  // }
-
-  // printf("Shrinked database size: %d\n", cnt);
-
-  
-  // delete[] flann_index.ptr();
-  // delete[] flann_dist.ptr();
-
-  // feature_poses_shrinked.resize(cnt);
-  // feature_image_idx_shrinked.resize(cnt);
-  // feature_scales_shrinked.resize(cnt);
-  // features_shrinked.conservativeResize(cnt, 128); 
 
   removeDuplicates();
 
   printf("MicroGPS::preprocessDatabase(): removed %d duplicated features\n", cnt - m_features.rows());
-
-  // m_feature_poses = feature_poses_shrinked;
-  // m_feature_image_idx = feature_image_idx_shrinked;
-  // m_feature_scales = feature_scales_shrinked;
-  // m_features = features_shrinked;
 
   printf("MicroGPS::preprocessDatabase(): m_features size: %ld x %ld\n", m_features.rows(), m_features.cols());
 }
@@ -993,82 +907,3 @@ bool MicroGPS::locate(WorkImage* work_image, WorkImage*& alignment_image,
 
   return true;
 }
-
-
-// int test_mgps(int argc, char const *argv[]) {
-//   std::srand(unsigned(std::time(0)));
-//   printf ("Random number: %d\n", rand()%100);
-
-//   std::string s = "/Users/lgzhang/Documents/DATA/micro_gps_packed/fc_hallway_long_packed";
-//   Database* database = new Database(s.c_str());
-//   database->loadDatabase();
-//   database->loadTestData();
-
-
-//   MicroGPS* mgps = new MicroGPS();
-//   mgps->loadDatabaseOnly(database);
-
-//   // mgps->preprocessDatabaseImages(50, 8);
-//   // mgps->savePCABasis("pca_basis.bin");
-//   // mgps->savePCAedFeatures("pca_features.bin");
-
-//   mgps->loadPCABasis("pca_basis.bin");
-//   mgps->loadPCAedFeatures("pca_features.bin");
-//   mgps->buildSearchIndex();
-
-//   // we load the test image
-//   WorkImage* work_image = new WorkImage(database->getTestImage(0));
-//   // WorkImage* work_image = new WorkImage(database->getDatabaseImage(IMAGE_ARRAY_SIZE));
-
-//   work_image->loadImage();
-
-//   WorkImage* alignment;
-//   MicroGPSTiming timing;
-//   MicroGPSDebug debug;
-//   MicroGPSOptions options;
-//   MicroGPSResult result;
-//   mgps->locate(work_image, alignment, options, result, timing, debug);
-//   alignment->write("alignment.png");
-
-//   return 0;
-// }
-
-int test_opencv_init_with_array(int argc, char const *argv[]) {
-  uchar* data = new uchar[10000];
-
-  for (int i = 0; i < 10000; i++) {
-    data[i] = i % 256;
-  }
-
-  // for (int i = 0; i < 10; i++) {
-
-  cv::Mat* m = new cv::Mat(10000, 1, CV_8UC1, data);
-  for (int i = 0; i < 10000; i++) {
-    m->at<uchar>(i, 0) = 0;
-  }
-
-  m->release();
-
-  printf("%zu elements\n", m->total());
-  delete m;
-
-
-  printf("opencv released\n");
-  delete[] data;
-  uchar* data2 = new uchar[10000];
-
-  // for (int i = 0; i < 10000; i++) {
-  //   printf("%d\n", data[i]);
-  //   data[i] = i % 256;
-  // }
-
-  return 0;
-}
-
-
-// int main(int argc, char const *argv[]) {
-//   test_mgps(argc, argv);
-//   // test_opencv_init_with_array(argc, argv);
-//
-//   return 0;
-// }

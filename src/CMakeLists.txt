@@ -8,29 +8,33 @@ set(SRCS
 
 add_library(mgps ${SRCS})
 
-
 if(ON_MAC)
   target_link_libraries(mgps
         ${OpenCV_LIBS}
         flann_cuda_s
         # flann
         cudart
+        # vl
         siftgpu
         )
-        
+
 elseif(ON_CSCYCLE)
   target_link_libraries(mgps
         ${OpenCV_LIBS}
         flann
         cudart
+        # vl
         siftgpu
         )
 
+        
 elseif(ON_TEGRA)
   target_link_libraries(mgps
         ${OpenCV_LIBS}
         flann
         cudart
+        # vl
         siftgpu
         )
+
 endif()
