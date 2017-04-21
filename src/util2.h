@@ -10,14 +10,36 @@
 #include <Eigen/Dense>
 #include <iostream>
 
-// helpers
-inline int myrandom (int i) {
-  static bool initialized = false;
-  if (!initialized) {
-    std::srand(unsigned(std::time(0)));
-    initialized = true;
+#include <vector>
+#include <string>
+#include <algorithm>
+
+namespace util {
+
+static bool rand_initialized = false;
+
+inline void initializeRand() {
+  srand(unsigned(time(0)));
+  // warm up
+  for (int i = 0; i < 100; i++) {
+    int dummy = rand();      
+  }
+  rand_initialized = true;
+}
+
+inline double rand01() {
+  if (!rand_initialized) {
+    initializeRand();
   }  
-  return std::rand()%i;
+  return ((double) rand() / RAND_MAX);
+}
+
+
+inline int myRandom (int i) {
+  if (!rand_initialized) {
+    initializeRand();
+  }  
+  return rand()%i;
 }
 
 inline void randomSample(int n, int k, std::vector<int>& sel) {
@@ -30,10 +52,31 @@ inline void randomSample(int n, int k, std::vector<int>& sel) {
     sel[i] = i;
   }
 
-  std::random_shuffle (sel.begin(), sel.end(), myrandom);
+  std::random_shuffle (sel.begin(), sel.end(), myRandom);
   sel.resize(k);
 }
 
+inline void notSel(int n, std::vector<int>& sel_in, std::vector<int>& not_sel) {
+  std::vector<int> sel = sel_in; // make a copy
+
+  if (sel.size() > n) {
+    return;
+  }
+  not_sel.resize(n - sel.size());
+  
+  std::sort(sel.begin(), sel.end());
+
+  size_t sel_idx = 0;
+  size_t not_sel_idx = 0;
+  for (int i = 0; i < n; i++) {
+    if (sel.size() > 0 && i == sel[sel_idx]) {
+      sel_idx++;
+    } else {
+      not_sel[not_sel_idx++] = i;
+    }
+  }
+
+}
 
 inline void readRobotCameraCalibration (char* file_path) {
   Eigen::MatrixXf T_camera_robot = Eigen::MatrixXf::Identity(3, 3);
@@ -112,5 +155,6 @@ inline void mkdirIfNotExists(char* path) {
   }
 }
 
+}
 
 #endif

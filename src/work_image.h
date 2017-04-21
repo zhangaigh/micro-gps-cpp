@@ -57,7 +57,7 @@ public:
   void resize(float ratio);
   void extractSIFT(float downsampling = 0.5f);
   void saveSIFTFeatures(char* path, int num_samples = 9999, float margin_thresh = -1.0f);
-  bool loadPrecomputedFeature(float downsampling = 0.5f); // can be anything
+  bool loadPrecomputedFeature(); // can be anything
   void PCADimReduction(Eigen::MatrixXf& PCA_basis);
 
   // access functions
@@ -93,7 +93,6 @@ private:
 
   cv::SIFT* m_sift_detector;
   std::vector<SIFTFeature*> m_sift_features;
-  // SiftGPU* m_sift_gpu;
 
   char m_external_feature_path[256];
 

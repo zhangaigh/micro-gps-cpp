@@ -22,8 +22,8 @@ void MicroGPS::setNumScaleGroups(int num_scale_groups) {
 }
 
 
-void MicroGPS::loadDatabaseOnly (Database* database) {
-  m_database = database;
+void MicroGPS::loadDatabaseOnly (Dataset* dataset) {
+  m_database = dataset;
 
   int num_images_to_process = IMAGE_ARRAY_SIZE;
 
@@ -33,8 +33,9 @@ void MicroGPS::loadDatabaseOnly (Database* database) {
   int cnt = 0;
   for (int i = 0; i < num_images_to_process; i++) {
     WorkImage* work_image = new WorkImage(m_database->getDatabaseImage(i),
-                                          m_database->getDatabasePrecomputedFeatures(i));
-    
+                                  m_database->getDatabasePrecomputedFeatures(i, 
+                                  (const char*)("sift")));
+
     Eigen::Matrix3f image_pose = m_database->getDatabasePose(i);
     // buffer image location
     image_locations.block(0, i, 2, 1) = image_pose.block(0, 2, 2, 1);
@@ -164,7 +165,7 @@ void MicroGPS::preprocessDatabaseImages (int num_samples_per_image, float image_
   for (int i = 0; i < m_database_images.size(); i++) {
     WorkImage* work_image = m_database_images[i];
     work_image->loadImage();
-    if (!work_image->loadPrecomputedFeature(image_scale_for_sift)) { // prefer using precomputed features
+    if (!work_image->loadPrecomputedFeature()) { // prefer using precomputed features
       work_image->extractSIFT(image_scale_for_sift);
     }
     Eigen::Matrix3f image_pose = m_database->getDatabasePose(i);
@@ -595,7 +596,7 @@ bool MicroGPS::locate(WorkImage* work_image, WorkImage*& alignment_image,
 
   // assume work_image is loaded
   begin_local = clock();
-  if (!work_image->loadPrecomputedFeature(options.image_scale_for_sift)) { // prefer using precomputed features
+  if (!work_image->loadPrecomputedFeature()) { // prefer using precomputed features
     work_image->extractSIFT(options.image_scale_for_sift);
   }
   end_local = clock();

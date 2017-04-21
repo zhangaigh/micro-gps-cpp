@@ -17,32 +17,32 @@ if(ON_MAC)
                         mgps
                         gflags)
 
-  set(ONLINE_GUI_SRCS
-    imgui_impl_glfw_gl3.cpp
-    online_gui.cpp
-    robot.cpp
-    gui_helper.cpp)
+  # set(ONLINE_GUI_SRCS
+  #   imgui_impl_glfw_gl3.cpp
+  #   online_gui.cpp
+  #   robot.cpp
+  #   gui_helper.cpp)
 
-  add_executable(online_gui ${ONLINE_GUI_SRCS})
-  target_link_libraries(online_gui
-                        glfw3
-                        gl3w
-                        imgui
-                        mgps)
+  # add_executable(online_gui ${ONLINE_GUI_SRCS})
+  # target_link_libraries(online_gui
+  #                       glfw3
+  #                       gl3w
+  #                       imgui
+                        # mgps)
 
 
-  set(MONITOR_SRCS
-    imgui_impl_glfw_gl3.cpp
-    monitor.cpp
-    robot.cpp
-    gui_helper.cpp)
+  # set(MONITOR_SRCS
+  #   imgui_impl_glfw_gl3.cpp
+  #   monitor.cpp
+  #   robot.cpp
+  #   gui_helper.cpp)
 
-  add_executable(monitor ${MONITOR_SRCS})
-  target_link_libraries(monitor
-                        glfw3
-                        gl3w
-                        imgui
-                        mgps)
+  # add_executable(monitor ${MONITOR_SRCS})
+  # target_link_libraries(monitor
+  #                       glfw3
+  #                       gl3w
+  #                       imgui
+  #                       mgps)
 
 
   add_executable(calibrate_robot_camera calibrate_robot_camera.cpp)
@@ -55,13 +55,13 @@ if(ON_MAC)
                         mgps
                         gflags)
 
-  add_executable(expand_map expand_map.cpp
-                            refine_poses.cpp)
-  target_link_libraries(expand_map
-                        mgps
-                        gflags
-                        ceres
-                        glog)
+  # add_executable(expand_map expand_map.cpp
+  #                           refine_poses.cpp)
+  # target_link_libraries(expand_map
+  #                       mgps
+  #                       gflags
+  #                       ceres
+  #                       glog)
 # --------------------------------------------------------------------
 
 elseif(ON_TEGRA)

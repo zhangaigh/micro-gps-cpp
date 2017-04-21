@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "micro_gps.h"
-#include "exec_util.h"
+#include "util.h"
 
 
 #include <imgui.h>
@@ -35,6 +35,7 @@ char  g_testset_name[256];
 char  g_test_results_name[256];
 char  g_feature_database_name[256];
 char  g_pca_basis_name[256];
+char  g_precomputed_feature_suffix[256];
 
 char  g_map_name[256];
 float g_map_scale;
@@ -47,7 +48,7 @@ float g_sift_extraction_scale;
 
 
 MicroGPS*       g_micro_gps = NULL;
-Database*       g_dataset = NULL;
+Dataset*        g_dataset = NULL;
 MicroGPSOptions g_micro_gps_options;
 MicroGPSResult  g_micro_gps_result;
 MicroGPSTiming  g_micro_gps_timing;
@@ -84,7 +85,7 @@ DEFINE_bool   (test_all,          false,                                        
 DEFINE_bool   (nogui,             false,                                              "disable gui");
 // offline
 DEFINE_int32  (db_sample_size,    50,                                                 "number of features sampled from each database image");
-
+DEFINE_string (feat_suffix,       "sift",                                             "default suffix for precomputed feature");
 // precomputed_feature
 // DEFINE_string (test_precomputed, "", "test images precomputed features - .txt");
 // DEFINE_string (dataset_precomputed, "", "database images precomputed features - .txt");
@@ -93,17 +94,18 @@ DEFINE_int32  (db_sample_size,    50,                                           
 void LoadVariablesFromCommandLine() {
   // TODO: overwrite g* variables with gflags values
   // strcpy(g_database_root,         FLAGS_dataset_root.c_str());
-  strcpy(g_dataset_name,          FLAGS_dataset.c_str());
-  strcpy(g_testset_name,          FLAGS_testset.c_str());
-  strcpy(g_test_results_name,     FLAGS_output.c_str());
-  strcpy(g_feature_database_name, FLAGS_feature_db.c_str());
-  strcpy(g_pca_basis_name,        FLAGS_pca_basis.c_str());
+  strcpy(g_dataset_name,                  FLAGS_dataset.c_str());
+  strcpy(g_testset_name,                  FLAGS_testset.c_str());
+  strcpy(g_test_results_name,             FLAGS_output.c_str());
+  strcpy(g_feature_database_name,         FLAGS_feature_db.c_str());
+  strcpy(g_pca_basis_name,                FLAGS_pca_basis.c_str());
+  strcpy(g_precomputed_feature_suffix,    FLAGS_feat_suffix.c_str());
 
-  g_cell_size                   = FLAGS_cell_size;
-  g_num_scale_groups            = FLAGS_num_scale_groups;
-  g_dimensionality              = FLAGS_feat_dim;
-  g_database_sample_size        = FLAGS_db_sample_size;
-  g_sift_extraction_scale       = FLAGS_sift_ext_scale;
+  g_cell_size                           = FLAGS_cell_size;
+  g_num_scale_groups                    = FLAGS_num_scale_groups;
+  g_dimensionality                      = FLAGS_feat_dim;
+  g_database_sample_size                = FLAGS_db_sample_size;
+  g_sift_extraction_scale               = FLAGS_sift_ext_scale;
 }
 
 
@@ -115,11 +117,10 @@ void commandLineBatchTest() {
   char dataset_path[256];
   sprintf(dataset_path, "%s/%s", g_dataset_root, g_dataset_name);
 
-  g_dataset = new Database(dataset_path);
+  g_dataset = new Dataset(dataset_path);
   g_dataset->loadDatabase();
-
   g_dataset->loadTestSequenceByName(g_testset_name);
-
+  g_dataset->setPrecomputedFeatureSuffix(g_precomputed_feature_suffix);
 
   if (g_micro_gps != NULL) {
     delete g_micro_gps;
@@ -168,7 +169,6 @@ void commandLineBatchTest() {
   sprintf(test_report_folder, "%s/%s", g_test_results_root, g_test_results_name);
   mkdirIfNotExists(test_report_folder);
 
-  printf("testsize = %d\n",  g_dataset->getTestSize());
   for (int test_index = 0; test_index < g_dataset->getTestSize(); test_index++) {
     bool success_flag = false;
     WorkImage* current_test_frame = new WorkImage(g_dataset->getTestImage(test_index),
@@ -186,6 +186,7 @@ void commandLineBatchTest() {
     g_micro_gps_result.success_flag = success_flag;
     current_test_frame->release();
     delete current_test_frame;
+    delete alignment_image;
 
     char test_report_path[256];
     sprintf(test_report_path, "%s/frame%06d.txt", test_report_folder, test_index);
@@ -195,11 +196,7 @@ void commandLineBatchTest() {
     g_micro_gps_debug.printToFile(fp);
     fclose(fp);
   }
-
-
 }
-
-
 
 
 int main(int argc, char *argv[]) {
@@ -209,10 +206,15 @@ int main(int argc, char *argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   printf("Arguments parsed\n");
   
-  LoadVariablesFromCommandLine();
-  printf("Arguments assigned\n");
   
   if (FLAGS_batch_test) {
+    LoadVariablesFromCommandLine();
+    printf("Arguments assigned\n");
+  } else {
+    // TODO: set variables from other sources
+  }
+
+  if (FLAGS_nogui) {
     commandLineBatchTest();
   }
 

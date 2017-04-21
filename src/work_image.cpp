@@ -8,7 +8,7 @@
 // #define FLANN_USE_CUDA
 #include "flann/flann.h"
 
-#include "database.h"
+#include "dataset.h"
 
 // extern "C" {
 //   #include "vl/sift.h"
@@ -700,7 +700,7 @@ void WorkImage::write(const char* image_path) {
   cv::imwrite(image_path, cv_im);
 }
 
-bool WorkImage::loadPrecomputedFeature(float downsampling) {
+bool WorkImage::loadPrecomputedFeature() {
   if (strcmp(m_external_feature_path, "") == 0) {
     printf("cannot read external feature!\n");
     return false;
@@ -716,13 +716,18 @@ bool WorkImage::loadPrecomputedFeature(float downsampling) {
   fclose(fp);
   printf("size[] = %d x %d\n", size[0], size[1]);
 
-  // assign values
+  // clear buffer
+  for (int i = 0; i < m_sift_features.size(); i++) {
+    delete m_sift_features[i];  
+  }
   m_sift_features.resize(size[0]);
+
+  // assign values
   for (int i = 0; i < size[0]; i++) {
     SIFTFeature* f = new SIFTFeature;
-    f->x = buffer[i * chunk_size + 0] / downsampling;
-    f->y = buffer[i * chunk_size + 1] / downsampling;
-    f->scale = buffer[i * chunk_size + 2] / downsampling;
+    f->x = buffer[i * chunk_size + 0];
+    f->y = buffer[i * chunk_size + 1];
+    f->scale = buffer[i * chunk_size + 2];
     f->angle = buffer[i * chunk_size + 3];
     if (f->scale < 1.0) {
       printf("%d: scale = %f!\n", i, f->scale);
@@ -840,7 +845,15 @@ void WorkImage::saveSIFTFeatures(char* path, int num_samples, float margin_thres
   randomSample(num_features, num_samples, sel);
   num_features = sel.size();
 
+  int feat_dim; 
+  if (num_features > 0) {
+    feat_dim = valid_features[0]->descriptor.size();
+  } else {
+    feat_dim = 0;
+  }
+
   fwrite(&num_features, sizeof(int), 1, fp);
+  fwrite(&feat_dim, sizeof(int), 1, fp);
 
   for (int i = 0; i < num_features; i++) {
     SIFTFeature* f = valid_features[sel[i]];
@@ -873,8 +886,13 @@ void WorkImage::siftMatch(WorkImage* img,
 
   WorkImage* img1_ptr = this;
   WorkImage* img2_ptr = img;
-  img1_ptr->extractSIFT();
-  img2_ptr->extractSIFT();
+  
+  if (!img1_ptr->loadPrecomputedFeature()) { // prefer using precomputed features
+    img1_ptr->extractSIFT();
+  }
+  if (!img2_ptr->loadPrecomputedFeature()) { // prefer using precomputed features
+    img2_ptr->extractSIFT();
+  }
 
   // copy data and build index
   flann::Matrix<float> flann_feat1(new float[img1_ptr->getSIFTSize() * 128],
@@ -1152,7 +1170,7 @@ int test_warp_image(int argc, char const *argv[]) {
 
 int test_warp_image_array(int argc, char const *argv[]) {
   std::string s = "/Users/lgzhang/Documents/DATA/micro_gps_packed/fc_hallway_long_packed";
-  Database* database = new Database(s.c_str());
+  Dataset* database = new Dataset(s.c_str());
   database->loadDatabase();
   database->loadDefaultTestSequence();
 

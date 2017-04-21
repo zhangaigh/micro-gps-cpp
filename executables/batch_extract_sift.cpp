@@ -43,7 +43,7 @@ int main (int argc, char** argv) {
   sprintf(dataset_path, "%s/%s", FLAGS_dataset_root.c_str(), FLAGS_dataset.c_str());
 
   bool extracting_test = false;
-  Database* dataset = new Database(dataset_path);
+  Dataset* dataset = new Dataset(dataset_path);
   if (FLAGS_testset == "") {
     dataset->loadDatabase();
     extracting_test = false;

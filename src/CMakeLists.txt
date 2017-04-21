@@ -1,7 +1,7 @@
 set(SRCS
   # main.cpp
   work_image.cpp
-  database.cpp
+  dataset.cpp
   micro_gps.cpp
   inpolygon.c
 )
@@ -17,6 +17,20 @@ if(ON_MAC)
         # vl
         siftgpu
         )
+
+
+  # add_executable(test_image_dataset image_dataset.cpp)
+  # target_link_libraries(test_image_dataset)
+
+  add_executable(test_image_basics test_image_basics.cpp
+                                   image_dataset.cpp
+                                   image.cpp
+                                   micro_gps2.cpp)
+                                   
+  target_link_libraries(test_image_basics
+                        ${OpenCV_LIBS}
+                        siftgpu)
+
 
 elseif(ON_CSCYCLE)
   target_link_libraries(mgps
