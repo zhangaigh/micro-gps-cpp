@@ -25,7 +25,9 @@ if(ON_MAC)
   add_executable(test_image_basics test_image_basics.cpp
                                    image_dataset.cpp
                                    image.cpp
-                                   micro_gps2.cpp)
+                                   image_func.cpp
+                                   micro_gps2.cpp
+                                   inpolygon2.c)
                                    
   target_link_libraries(test_image_basics
                         ${OpenCV_LIBS}
