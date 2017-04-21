@@ -7,10 +7,12 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <Eigen/Dense>
 #include <iostream>
 
 #include <vector>
+#include <stack>
 #include <string>
 #include <algorithm>
 
@@ -154,6 +156,26 @@ inline void mkdirIfNotExists(char* path) {
     printf("%s exists, ignore...\n", path);
   }
 }
+
+
+inline long long getSystemTime() {
+  struct timeval tnow;
+  gettimeofday(&tnow, NULL);
+  return tnow.tv_sec * 1000000 + tnow.tv_usec;
+}
+
+
+static std::stack<long long> tic_stack;
+inline void tic(){
+  tic_stack.push(getSystemTime());
+}
+
+inline long long toc(){
+  long long t = getSystemTime() - tic_stack.top();
+  tic_stack.pop();
+  return t;
+}
+
 
 }
 

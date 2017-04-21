@@ -111,8 +111,10 @@ void Image::create(const size_t width, const size_t height, const size_t channel
 }
 
 void Image::release() {
-  delete[] m_data;
-  m_data = NULL;
+  if (m_data) {
+    delete[] m_data;
+    m_data = NULL;
+  }
 
   for (int i = 0; i < m_local_features.size(); i++) {
     delete m_local_features[i];  
@@ -431,6 +433,15 @@ size_t Image::getNumLocalFeatures() {
 
 LocalFeature* Image::getLocalFeature(size_t idx) {
   return m_local_features[idx];
+}
+
+
+void Image::linearFeatureCompression(const Eigen::MatrixXf& basis) {
+  for (size_t i = 0; i < m_local_features.size(); i++) {
+    LocalFeature* f = m_local_features[i];
+    f->descriptor_compressed = f->descriptor * basis; // still row vector
+  }
+  printf("linearFeatureCompression: feature dimension reduced\n");
 }
 
 

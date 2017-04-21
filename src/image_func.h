@@ -1,4 +1,9 @@
+#ifndef _IMAGE_FUNC_H_ 
+#define _IMAGE_FUNC_H_
+
+#include "flann/flann.h"
 #include "image.h"
+#include "util2.h"
 
 
 namespace MicroGPS {
@@ -43,3 +48,6 @@ bool      estimatePoseFromMatchedImages(Image* img1_ptr, Image* img2_ptr,
 
 }
 }
+
+
+#endif

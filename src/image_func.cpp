@@ -1,6 +1,5 @@
 #include "image_func.h"
-#include "flann/flann.h"
-#include "util.h"
+
 
 namespace MicroGPS {
 namespace ImageFunc {

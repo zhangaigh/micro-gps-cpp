@@ -86,6 +86,7 @@ public:
   bool            loadPrecomputedFeatures(const bool load_sift);
   size_t          getNumLocalFeatures();
   LocalFeature*   getLocalFeature(size_t idx);
+  void            linearFeatureCompression(const Eigen::MatrixXf& basis);
 
 private:
   cv::Mat         convertToCvMat() const;
