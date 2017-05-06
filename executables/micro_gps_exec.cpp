@@ -178,8 +178,8 @@ void commandLineBatchTest() {
                               precomputed_feat_path,
                               precomputed_sift_path);
 
-    MicroGPS::Image* current_test_frame = 
-          new MicroGPS::Image(g_dataset->getTestImagePath(test_index));
+    // MicroGPS::Image* current_test_frame = 
+    //       new MicroGPS::Image(g_dataset->getTestImagePath(test_index));
 
     current_test_frame->loadImage();
 
