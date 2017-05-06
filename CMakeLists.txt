@@ -9,10 +9,12 @@ message(STATUS ${CMAKE_SYSTEM_PROCESSOR} "   " ${CMAKE_SYSTEM})
 
 include(config.cmake)
 
-add_subdirectory(imgui_lib)
-include_directories(imgui_lib)
+include_directories(imgui)
+include_directories(imgui/gl3w)
+include_directories(imgui/lib)
+add_subdirectory(imgui)
 
-add_subdirectory(src)
 include_directories(src)
+add_subdirectory(src)
 
 add_subdirectory(executables)

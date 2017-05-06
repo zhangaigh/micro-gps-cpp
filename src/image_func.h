@@ -3,7 +3,7 @@
 
 #include "flann/flann.h"
 #include "image.h"
-#include "util2.h"
+#include "util.h"
 
 
 namespace MicroGPS {

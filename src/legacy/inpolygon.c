@@ -48,7 +48,7 @@
 
 // #include "mex.h"
 #include <math.h>
-#include "inpolygon2.h"
+#include "inpolygon.h"
 // #include <matrix.h>
 
 #define EPS 1.0e-10
@@ -56,33 +56,33 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 
-void inpolygon(int nP, float* px, float* py, int nC, float* cx, float* cy, 
+void inpolygon(int nP, double* px, double* py, double* cx, double* cy, 
               bool* points_in_on, bool* points_in, bool* points_on) {
     
   // int nPM, nPN;
   // int nP, nC;
-  // int nC;
+  int nC;
   int iP, iC;
   int ind;
-  // float *px, *py, *cx, *cy;
+  // double *px, *py, *cx, *cy;
   // bool *points_in_on, *points_in, *points_on;
 
-  float xmin, xmax, ymin, ymax;
-  float ax, bx, ay, by;
-  float nIntersect, intersecty, tmp;
+  double xmin, xmax, ymin, ymax;
+  double ax, bx, ay, by;
+  double nIntersect, intersecty, tmp;
 
   /* unpack inputs */
   // nPM = mxGetM(pINP[0]);
   // nPN = mxGetN(pINP[0]);
   // nP = nPM * nPN;
   // nP = 1;
-  // px = (float *)mxGetPr(pINP[0]);
-  // py = (float *)mxGetPr(pINP[1]);
+  // px = (double *)mxGetPr(pINP[0]);
+  // py = (double *)mxGetPr(pINP[1]);
 
   // nC = mxGetM(pINP[2]) * mxGetN(pINP[2]);
-  // nC = 4;
-  // cx = (float *)mxGetPr(pINP[2]);
-  // cy = (float *)mxGetPr(pINP[3]);
+  nC = 4;
+  // cx = (double *)mxGetPr(pINP[2]);
+  // cy = (double *)mxGetPr(pINP[3]);
 
   ax = cx[0];
   ay = cy[0];

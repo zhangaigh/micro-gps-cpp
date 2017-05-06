@@ -1,10 +1,10 @@
 message( STATUS "Building for:  " ${CMAKE_SYSTEM} "(" ${CMAKE_SYSTEM_PROCESSOR} ")" )
-option(ON_CSCYCLE "Option description" ON)
-add_definitions(-DON_CSCYCLE)
+option(ON_VISIONGPU1 "Option description" ON)
+add_definitions(-DON_VISIONGPU1)
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
-set(EXECUTABLE_OUTPUT_PATH ${MY_DIR}/bin_cscyle)
+set(EXECUTABLE_OUTPUT_PATH ${MY_DIR}/bin_visiongpu1)
 
 # OpenCV
 find_package(OpenCV REQUIRED)

@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-void inpolygon(int nP, double* px, double* py, double* cx, double* cy, 
+void inpolygon(int nP, float* px, float* py, int nC, float* cx, float* cy, 
               bool* points_in_on, bool* points_in, bool* points_on);
 
 #endif

@@ -1,6 +1,6 @@
 // #include "image_dataset.h"
 // #include "image.h"
-#include "micro_gps2.h"
+#include "micro_gps.h"
 
 
 int main(int argc, char const *argv[]) {

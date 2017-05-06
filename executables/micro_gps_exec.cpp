@@ -7,17 +7,11 @@
 #include "util.h"
 
 
-#include <imgui.h>
+#include "imgui.h"
 #include "imgui_impl_glfw_gl3.h"
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
-// // OpenGL related
-// #include "imgui.h"
-// #include "imgui_impl_glfw_gl3.h"
-// #include <GL/gl3w.h>
-// #include <GLFW/glfw3.h>
-// #include "gui.h"
 
 #ifdef ON_MAC
 char* g_dataset_root      = (char*)("/Users/lgzhang/Documents/DATA/micro_gps_packed");
@@ -47,12 +41,11 @@ int   g_database_sample_size;
 float g_sift_extraction_scale;
 
 
-MicroGPS*       g_micro_gps = NULL;
-Dataset*        g_dataset = NULL;
-MicroGPSOptions g_micro_gps_options;
-MicroGPSResult  g_micro_gps_result;
-MicroGPSTiming  g_micro_gps_timing;
-MicroGPSDebug   g_micro_gps_debug;
+MicroGPS::Localization*        g_localizer = NULL;
+MicroGPS::ImageDataset*        g_dataset = NULL;
+MicroGPS::LocalizationOptions  g_localizer_options;
+MicroGPS::LocalizationResult   g_localizer_result;
+MicroGPS::LocalizationTiming   g_localizer_timing;
 
 // basic variables 
 int g_num_frames_tested = 0;
@@ -69,12 +62,12 @@ int g_test_index = 0;
 
 DEFINE_bool   (batch_test,        false,                                              "do batch test");
 DEFINE_string (dataset_root,      "/Users/lgzhang/Documents/DATA/micro_gps_packed",   "dataset_root");
-DEFINE_string (dataset,           "fc_hallway_long_packed",                         "dataset to use");
+DEFINE_string (dataset,           "fc_hallway_long_packed",                           "dataset to use");
 DEFINE_string (testset,           "test00.test",                                      "test sequence");
 DEFINE_string (output,            "tests",                                            "output");
 DEFINE_string (feature_db,        "fc_hallway_long_packed-siftgpu.bin",               "database features");
 DEFINE_string (pca_basis,         "pca_fc_hallway_long_packed-siftgpu.bin",           "pca basis to use");
-DEFINE_string (map,               "acee_asphalt_map_10per.png",                       "stitched map");
+DEFINE_string (map,               "fc_map_10per.png",                                 "stitched map");
 DEFINE_double (map_scale,         0.1,                                                "map scale");
 DEFINE_double (cell_size,         50.0f,                                              "size of the voting cell");
 DEFINE_int32  (num_scale_groups,  10,                                                 "number of search indexes");
@@ -106,6 +99,8 @@ void LoadVariablesFromCommandLine() {
   g_dimensionality                      = FLAGS_feat_dim;
   g_database_sample_size                = FLAGS_db_sample_size;
   g_sift_extraction_scale               = FLAGS_sift_ext_scale;
+
+  printf("g_dataset_name=%s\n", g_dataset_name);
 }
 
 
@@ -117,105 +112,122 @@ void commandLineBatchTest() {
   char dataset_path[256];
   sprintf(dataset_path, "%s/%s", g_dataset_root, g_dataset_name);
 
-  g_dataset = new Dataset(dataset_path);
-  g_dataset->loadDatabase();
+  g_dataset = new MicroGPS::ImageDataset(dataset_path);
+  g_dataset->loadDatabaseImages();
   g_dataset->loadTestSequenceByName(g_testset_name);
   g_dataset->setPrecomputedFeatureSuffix(g_precomputed_feature_suffix);
 
-  if (g_micro_gps != NULL) {
-    delete g_micro_gps;
+  if (g_localizer != NULL) {
+    delete g_localizer;
   }
 
-  g_micro_gps = new MicroGPS();
-  g_micro_gps->loadDatabaseOnly(g_dataset);
+  g_localizer = new MicroGPS::Localization();
 
+  g_localizer->setVotingCellSize(g_cell_size);
+  g_localizer->setNumScaleGroups(g_num_scale_groups);
+  g_localizer->loadImageDataset(g_dataset);
   printf("Loaded dataset\n");
-
-  g_micro_gps->setVotingCellSize(g_cell_size);
-  g_micro_gps->setNumScaleGroups(g_num_scale_groups);
-  g_micro_gps->loadDatabaseOnly(g_dataset);
   printf("Micro-GPS configured\n");
 
   // reload precomputed values
   char s[256];
   sprintf(s, "%s/%s", g_database_root, g_feature_database_name);
-  if (!checkFileExists(s)) { // create if not exists
-    g_micro_gps->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale);
-    g_micro_gps->saveFeatures(s);
+  if (!util::checkFileExists(s)) { // create if not exists
+    g_localizer->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale);
+    g_localizer->saveFeatures(s);
     printf("Feature database computed\n");
-  }
-  g_micro_gps->loadFeatures(s);
-  printf("Feature database loaded\n");
-  
-  if (strcmp(g_pca_basis_name, "") != 0) {
-    sprintf(s, "%s/%s", g_PCA_basis_root, g_pca_basis_name);
-    g_micro_gps->loadPCABasis(s);
   } else {
-    g_micro_gps->computePCABasis();
+    g_localizer->loadFeatures(s);
+    printf("Feature database loaded\n");
+  }
+  
+  // load PCA basis
+  sprintf(s, "%s/%s", g_PCA_basis_root, g_pca_basis_name);
+
+  if (util::checkFileExists(s)) {
+    g_localizer->loadPCABasis(s);
+    printf("PCA basis loaded\n");
+  } else {
+    g_localizer->computePCABasis();
     sprintf(s, "%s/pca_%s", g_PCA_basis_root, g_feature_database_name);
-    g_micro_gps->savePCABasis(s);
+    g_localizer->savePCABasis(s);
     printf("PCA basis computed\n");
   }
-  printf("PCA basis loaded\n");
 
-  g_micro_gps->PCAreduction(g_dimensionality);
+
+  g_localizer->dimensionReductionPCA(g_dimensionality);
   printf("Reduced feature dimensionality\n");
 
-  g_micro_gps->buildSearchIndexMultiScales();
+  g_localizer->buildSearchIndexMultiScales();
   printf("Built search index\n");
-
 
   char test_report_folder[256];
   sprintf(test_report_folder, "%s/%s", g_test_results_root, g_test_results_name);
-  mkdirIfNotExists(test_report_folder);
+  util::mkdirIfNotExists(test_report_folder);
 
-  for (int test_index = 0; test_index < g_dataset->getTestSize(); test_index++) {
-    bool success_flag = false;
-    WorkImage* current_test_frame = new WorkImage(g_dataset->getTestImage(test_index),
-                                                  g_dataset->getTestPrecomputedFeatures(test_index));
+  // for (int test_index = 0; test_index < g_dataset->getTestSequenceSize(); test_index++) {
+  for (int test_index = 0; test_index < 1; test_index++) {
+    char precomputed_feat_path[256];
+    char precomputed_sift_path[256];
+
+    g_dataset->getTestImagePrecomputedFeatures(0, precomputed_feat_path);
+    g_dataset->getTestImagePrecomputedFeatures(1, precomputed_sift_path, (char*)"sift");
+
+    MicroGPS::Image* current_test_frame = 
+          new MicroGPS::Image(g_dataset->getTestImagePath(test_index),
+                              precomputed_feat_path,
+                              precomputed_sift_path);
+
+    MicroGPS::Image* current_test_frame = 
+          new MicroGPS::Image(g_dataset->getTestImagePath(test_index));
+
     current_test_frame->loadImage();
 
-    WorkImage* alignment_image = NULL;
-    g_micro_gps_timing.reset();
-    g_micro_gps_result.reset();
-    g_micro_gps_debug.reset();  
+    MicroGPS::Image* alignment_image;
+    g_localizer_timing.reset();
+    g_localizer_result.reset();
 
-    success_flag = g_micro_gps->locate(current_test_frame, alignment_image,
-                                                        g_micro_gps_options, g_micro_gps_result,
-                                                        g_micro_gps_timing, g_micro_gps_debug);
-    g_micro_gps_result.success_flag = success_flag;
+    g_localizer->locate(current_test_frame,
+                        &g_localizer_options, 
+                        &g_localizer_result,
+                        &g_localizer_timing, 
+                        alignment_image);
+
     current_test_frame->release();
+
     delete current_test_frame;
     delete alignment_image;
 
     char test_report_path[256];
     sprintf(test_report_path, "%s/frame%06d.txt", test_report_folder, test_index);
-    FILE* fp = fopen(test_report_path, "w");
-    g_micro_gps_timing.printToFile(fp);
-    g_micro_gps_result.printToFile(fp);
-    g_micro_gps_debug.printToFile(fp);
-    fclose(fp);
+
+    // FILE* fp = fopen(test_report_path, "w");
+    // g_localizer_timing.printToFile(fp);
+    // g_localizer_result.printToFile(fp);
+    // g_localizer_debug.printToFile(fp);
+    // fclose(fp);
   }
 }
 
 
 int main(int argc, char *argv[]) {
-  initSiftGPU();
+  MicroGPS::initSiftGPU();
 
 
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   printf("Arguments parsed\n");
   
+  LoadVariablesFromCommandLine();
   
-  if (FLAGS_batch_test) {
-    LoadVariablesFromCommandLine();
-    printf("Arguments assigned\n");
-  } else {
-    // TODO: set variables from other sources
-  }
+  // if (FLAGS_batch_test) {
+  //   LoadVariablesFromCommandLine();
+  //   printf("Arguments assigned\n");
+  // } else {
+  //   // TODO: set variables from other sources
+  // }
 
-  if (FLAGS_nogui) {
-    commandLineBatchTest();
-  }
+  // if (FLAGS_nogui) {
+  commandLineBatchTest();
+  // }
 
 }

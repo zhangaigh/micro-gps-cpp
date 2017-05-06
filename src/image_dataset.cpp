@@ -140,7 +140,7 @@ void ImageDataset::getDatabaseImagePrecomputedFeatures(const unsigned idx,
                   suffix_used,
                   idx);
 
-  if (!checkFileExists(path)) {
+  if (!util::checkFileExists(path)) {
     sprintf(path, "");
   }
 }
@@ -171,7 +171,7 @@ void ImageDataset::getTestImagePrecomputedFeatures(const unsigned idx,
                   suffix_used,
                   idx);
 
-  if (!checkFileExists(path)) {
+  if (!util::checkFileExists(path)) {
     sprintf(path, "");
   }
 }
