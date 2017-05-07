@@ -51,7 +51,6 @@ void matchFeatureBidirectional(Image* img1_ptr, Image* img2_ptr,
                               bool extract_feature) {
 
   if (extract_feature) {
-    // TODO: let it work for other features
     img1_ptr->extractSIFT();
     img2_ptr->extractSIFT();
   }
