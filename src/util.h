@@ -145,7 +145,7 @@ inline bool checkFileExists(const char* path) {
   return true;
 }
 
-inline void mkdirIfNotExists(char* path) {
+inline void mkdirIfNotExists(const char* path) {
   struct stat buffer;   
   if (stat (path, &buffer) != 0) {
     printf("%s doesn't exist!\n", path);
