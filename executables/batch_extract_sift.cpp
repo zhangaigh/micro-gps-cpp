@@ -20,7 +20,7 @@ DEFINE_double(margin_thresh,   -1.0f,  "ignore points close to the boundaries");
 
 
 int main (int argc, char** argv) {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+  GFLAGS_NAMESPACE::ParseCommandLineFlags(&argc, &argv, true);
 
   MicroGPS::initSiftGPU();
 

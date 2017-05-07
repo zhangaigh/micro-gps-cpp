@@ -7,18 +7,18 @@
 #include "util.h"
 
 
-#include "imgui.h"
-#include "imgui_impl_glfw_gl3.h"
-#include <GL/gl3w.h>
-#include <GLFW/glfw3.h>
+// #include "imgui.h"
+// #include "imgui_impl_glfw_gl3.h"
+// #include <GL/gl3w.h>
+// #include <GLFW/glfw3.h>
 
 
 #ifdef ON_MAC
 char* g_dataset_root      = (char*)("/Users/lgzhang/Documents/DATA/micro_gps_packed");
-char* g_map_image_root    = (char*)("maps");
+// char* g_map_image_root    = (char*)("maps");
 char* g_database_root     = (char*)("databases");
 char* g_PCA_basis_root    = (char*)("pca_bases");
-char* g_screenshots_root  = (char*)("screenshots");
+// char* g_screenshots_root  = (char*)("screenshots");
 char* g_test_results_root = (char*)("test_results");
 #endif
 
@@ -31,8 +31,8 @@ char  g_feature_database_name[256];
 char  g_pca_basis_name[256];
 char  g_precomputed_feature_suffix[256];
 
-char  g_map_name[256];
-float g_map_scale;
+// char  g_map_name[256];
+// float g_map_scale;
 
 float g_cell_size;
 int   g_num_scale_groups;
@@ -60,22 +60,22 @@ int g_test_index = 0;
 
 
 
-DEFINE_bool   (batch_test,        false,                                              "do batch test");
+// DEFINE_bool   (batch_test,        false,                                              "do batch test");
 DEFINE_string (dataset_root,      "/Users/lgzhang/Documents/DATA/micro_gps_packed",   "dataset_root");
 DEFINE_string (dataset,           "fc_hallway_long_packed",                           "dataset to use");
 DEFINE_string (testset,           "test00.test",                                      "test sequence");
 DEFINE_string (output,            "tests",                                            "output");
 DEFINE_string (feature_db,        "fc_hallway_long_packed-siftgpu.bin",               "database features");
 DEFINE_string (pca_basis,         "pca_fc_hallway_long_packed-siftgpu.bin",           "pca basis to use");
-DEFINE_string (map,               "fc_map_10per.png",                                 "stitched map");
-DEFINE_double (map_scale,         0.1,                                                "map scale");
+// DEFINE_string (map,               "fc_map_10per.png",                                 "stitched map");
+// DEFINE_double (map_scale,         0.1,                                                "map scale");
 DEFINE_double (cell_size,         50.0f,                                              "size of the voting cell");
 DEFINE_int32  (num_scale_groups,  10,                                                 "number of search indexes");
 DEFINE_int32  (feat_dim,          8,                                                  "dimensionality after PCA reduction");
 DEFINE_int32  (best_knn,          9999,                                               "use the best k nearest neighbors for voting");
 DEFINE_double (sift_ext_scale,    0.5,                                                "extract sift at this scale");
-DEFINE_bool   (test_all,          false,                                              "test all frames");
-DEFINE_bool   (nogui,             false,                                              "disable gui");
+// DEFINE_bool   (test_all,          false,                                              "test all frames");
+// DEFINE_bool   (nogui,             false,                                              "disable gui");
 // offline
 DEFINE_int32  (db_sample_size,    50,                                                 "number of features sampled from each database image");
 DEFINE_string (feat_suffix,       "sift",                                             "default suffix for precomputed feature");
@@ -211,13 +211,12 @@ void commandLineBatchTest() {
 
 
 int main(int argc, char *argv[]) {
-  MicroGPS::initSiftGPU();
-
-
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+  GFLAGS_NAMESPACE::ParseCommandLineFlags(&argc, &argv, true);
   printf("Arguments parsed\n");
   
   LoadVariablesFromCommandLine();
+
+  MicroGPS::initSiftGPU();
   
   // if (FLAGS_batch_test) {
   //   LoadVariablesFromCommandLine();
