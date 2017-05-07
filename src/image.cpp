@@ -336,18 +336,37 @@ void Image::extractSIFT(float downsampling) {
 
 }
 
-void Image::saveLocalFeatures(const char* path) {
+void Image::saveLocalFeatures(const char* path, const int num_samples, const float margin_thresh) {
   FILE* fp = fopen(path, "w");
 
-  // fprintf(fp, "%s\n", m_image_path);
-
+  std::vector<LocalFeature*> valid_features;
   int num_features = m_local_features.size();
-  int feat_dim = m_local_features[0]->descriptor.size();
+  for (int i = 0; i < num_features; i++) {
+    LocalFeature* f = m_local_features[i];
+    if (f->x > margin_thresh && f->x < m_width-1-margin_thresh &&
+        f->y > margin_thresh && f->y < m_height-1-margin_thresh) {
+      valid_features.push_back(f);
+    }
+  }
+
+  // randsample features
+  num_features = valid_features.size();
+  std::vector<int> sel;
+  util::randomSample(num_features, num_samples, sel);
+  num_features = sel.size();
+
+  int feat_dim;
+  if (num_features > 0) {
+    feat_dim = valid_features[0]->descriptor.size();
+  } else {
+    feat_dim = 0;
+  }
+
   fwrite(&num_features, sizeof(int), 1, fp);
   fwrite(&feat_dim, sizeof(int), 1, fp);
 
   for (int i = 0; i < num_features; i++) {
-    LocalFeature* f = m_local_features[i];
+    LocalFeature* f = valid_features[sel[i]];
     float kp[4];
     kp[0] = f->x;
     kp[1] = f->y;

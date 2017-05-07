@@ -82,7 +82,9 @@ public:
 
   // Features
   void            extractSIFT(float downsampling = 0.5f);
-  void            saveLocalFeatures(const char* path);
+  void            saveLocalFeatures(const char* path, 
+                                    const int num_samples = 9999, 
+                                    const float margin_thresh = -1.0f);
   bool            loadPrecomputedFeatures(const bool load_sift);
   size_t          getNumLocalFeatures();
   LocalFeature*   getLocalFeature(size_t idx);
