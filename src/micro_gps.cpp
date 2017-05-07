@@ -798,8 +798,16 @@ void Localization::locate(MicroGPS::Image* work_image,
     std::vector<int> matched_idx1;
     std::vector<int> matched_idx2;
 
+    if (!work_image->loadPrecomputedFeatures(true)) { // use sift for verification
+      work_image->extractSIFT(options->m_image_scale_for_sift);
+    }
+
+    if (!closest_database_image->loadPrecomputedFeatures(true)) { // use sift for verification
+      closest_database_image->extractSIFT(options->m_image_scale_for_sift);
+    }
+
     MicroGPS::ImageFunc::matchFeatureBidirectional(work_image, closest_database_image,
-                                                  matched_idx1, matched_idx2);
+                                                  matched_idx1, matched_idx2, false);
     
     if (matched_idx1.size() < 5) {
       printf("locate(): verification matched_idx1.size() < 5\n");
