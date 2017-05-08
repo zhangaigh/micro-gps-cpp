@@ -116,7 +116,82 @@ void LoadVariablesFromCommandLine() {
   printf("g_dataset_name=%s\n", g_dataset_name);
 }
 
+void EventPreprocessing() {
+  char selected_database_path[256];
+  sprintf(selected_database_path, "%s/%s", g_database_root,
+                                           g_feature_database_name);
+  char selected_pca_basis_path[256];
+  sprintf(selected_pca_basis_path, "%s/%s", g_PCA_basis_root,
+                                            g_pca_basis_name);
+  // compute precomputed values
+  if (!util::checkFileExists(selected_database_path)) { // create if not exists
+    g_localizer->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale);
+    g_localizer->saveFeatures(selected_database_path);
+  }
 
+  // compute pca basis
+  if (!util::checkFileExists(selected_pca_basis_path)) { // create if not exists
+    g_localizer->computePCABasis();  
+    char s[256]; 
+    sprintf(s, "%s/pca_%s", g_PCA_basis_root, g_feature_database_name); // use standard name    
+    g_localizer->savePCABasis(s);    
+  }  
+}
+
+void EventInitLocalizer() {
+  g_localizer->setVotingCellSize(g_cell_size);
+  g_localizer->setNumScaleGroups(g_num_scale_groups);
+  g_localizer->loadImageDataset(g_dataset);
+
+  char selected_database_path[256];
+  sprintf(selected_database_path, "%s/%s", g_database_root,
+                                           g_feature_database_name);
+  char selected_pca_basis_path[256];
+  sprintf(selected_pca_basis_path, "%s/%s", g_PCA_basis_root,
+                                            g_pca_basis_name);
+
+  EventPreprocessing(); // run only if files don't exist
+  // reload precomputed values
+  g_localizer->loadFeatures(selected_database_path);
+  // reload pca basis
+  g_localizer->loadPCABasis(selected_pca_basis_path);
+ 
+  g_localizer->dimensionReductionPCA(g_dimensionality);
+  g_localizer->buildSearchIndexMultiScales();
+}
+
+void EventTestCurrentFrame() {
+  char precomputed_feat_path[256];
+  char precomputed_sift_path[256];
+
+  g_dataset->getTestImagePrecomputedFeatures(0, precomputed_feat_path);
+  g_dataset->getTestImagePrecomputedFeatures(1, precomputed_sift_path, (char*)("sift"));
+
+  MicroGPS::Image* current_test_frame = 
+        new MicroGPS::Image(g_dataset->getTestImagePath(g_test_index),
+                            precomputed_feat_path,
+                            precomputed_sift_path);
+
+  current_test_frame->loadImage();
+
+  MicroGPS::Image* alignment_image;
+  g_localizer_timing.reset();
+  g_localizer_result.reset();
+
+  // TODO: set options
+  // g_localizer_options.reset();
+
+  g_localizer->locate(current_test_frame,
+                      &g_localizer_options, 
+                      &g_localizer_result,
+                      &g_localizer_timing, 
+                      alignment_image);
+
+  current_test_frame->release();
+
+  delete current_test_frame;
+  delete alignment_image;
+}
 
 
 void drawSetting() {
@@ -138,9 +213,13 @@ void drawSetting() {
     ImGui::SameLine();
     char selected_dataset_path[256];
     sprintf(selected_dataset_path, "%s/%s", g_dataset_root, 
-                                       g_dataset_list[g_dataset_selected_idx].c_str());
+                                            g_dataset_list[g_dataset_selected_idx].c_str());
     if (ImGui::Button("load dataset", ImVec2(-1, 0))) {
-      // eventLoadDataset(selected_dataset_path);
+      if (g_dataset) {
+        delete g_dataset;
+      }
+      g_dataset = new MicroGPS::ImageDataset(selected_dataset_path);
+      g_dataset->loadDatabaseImages();
     }
 
     // load test sequence
@@ -184,21 +263,15 @@ void drawSetting() {
     // feature database
     util::listDir(g_database_root, g_database_list, "", true); // list databases
     ImGui::Combo("database", &g_database_selected_idx, g_database_list);
-    char selected_database_path[256];
-    sprintf(selected_database_path, "%s/%s", g_database_root,
-                                             g_database_list[g_database_selected_idx].c_str());
 
     // PCA basis
     util::listDir(g_PCA_basis_root, g_pca_basis_list, "", true); // list PCA bases
     ImGui::Combo("PCA basis", &g_pca_basis_selected_idx, g_pca_basis_list);
-    char selected_pca_basis_path[256];
-    sprintf(selected_pca_basis_path, "%s/%s", g_PCA_basis_root,
-                                              g_pca_basis_list[g_pca_basis_selected_idx].c_str());
+
     if (ImGui::Button("reload", ImVec2(-1, 0))) {
-      // eventInitMicroGPS(mgpsVars.cell_size, mgpsVars.scale_groups, 
-      //                   mgpsVars.load_database_path[mgpsVars.load_database_path_selected].c_str(),
-      //                   selected_pca_basis_path,
-      //                   mgpsVars.PCA_dimensions);
+      strcpy(g_feature_database_name, g_database_list[g_database_selected_idx].c_str());
+      strcpy(g_pca_basis_name, g_pca_basis_list[g_pca_basis_selected_idx].c_str());
+      EventInitLocalizer();
     }
 
     int max_test_index = 9999;
@@ -231,7 +304,8 @@ void drawSetting() {
     ImGui::Checkbox("Alignment",  &g_localizer_options.m_generate_alignment_image);
 
     // eventTestAll(false);
-
+    
+    // update visualization of the test frame
     static int prev_test_index = -1;
     if (g_test_index != prev_test_index) {
       // WorkImage* current_test_frame = new WorkImage(mgpsVars.dataset->getTestImage(g_test_index));
@@ -254,7 +328,7 @@ void drawSetting() {
     }
 
     if (ImGui::Button("locate", ImVec2(-1, 0))) {
-      // testCurrentFrame();
+      EventTestCurrentFrame();
     }
   }
 
@@ -280,21 +354,16 @@ void drawSetting() {
     }
 
     char save_database_name[256];
+    sprintf(save_database_name, "*-siftgpu.bin");
     char save_PCA_basis_name[256];
+    sprintf(save_PCA_basis_name, "pca-*-siftgpu.bin");
     ImGui::InputText("database###save_database", save_database_name, 256);
     ImGui::InputText("PCA basis###save_pca_basis", save_PCA_basis_name, 256);
 
     if (ImGui::Button("process", ImVec2(-1, 0))) {
-      // mgpsVars.micro_gps->preprocessDatabaseImages(g_database_sample_size, g_localizer_options.image_scale_for_sift);
-      // mgpsVars.micro_gps->computePCABasis();
-      // mgpsVars.micro_gps->PCAreduction(mgpsVars.PCA_dimensions);
-      char s[256];
-      sprintf(s, "%s/%s", g_PCA_basis_root, save_PCA_basis_name);
-      // mgpsVars.micro_gps->savePCABasis(s);
-      sprintf(s, "%s/%s", g_database_root, save_database_name);
-      // mgpsVars.micro_gps->saveFeatures(s);
-      // mgpsVars.micro_gps->buildSearchIndex();
-      // mgpsVars.micro_gps->buildSearchIndexMultiScales();
+      strcpy(g_feature_database_name, g_database_list[g_database_selected_idx].c_str());
+      strcpy(g_pca_basis_name, g_pca_basis_list[g_pca_basis_selected_idx].c_str());
+      EventPreprocessing();
     }
   }
 
@@ -338,17 +407,6 @@ void drawSetting() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 int main(int argc, char *argv[]) {
   GFLAGS_NAMESPACE::ParseCommandLineFlags(&argc, &argv, true);
   printf("Arguments parsed\n");
@@ -357,7 +415,9 @@ int main(int argc, char *argv[]) {
   // readRobotCameraCalibration(robot_camera_calibration_file_path);
 
   MicroGPS::initSiftGPU();
-
+  g_localizer = new MicroGPS::Localization();
+  
+  
   // Setup window
   glfwSetErrorCallback(gui_error_callback);
   if (!glfwInit())
@@ -418,6 +478,8 @@ int main(int argc, char *argv[]) {
   // Cleanup
   ImGui_ImplGlfwGL3_Shutdown();
   glfwTerminate();
+
+  delete g_localizer;
 
   return 0;
 }
