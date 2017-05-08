@@ -570,7 +570,7 @@ void Localization::locate(MicroGPS::Image* work_image,
   printf("Getting features costs %.02f ms\n", timing->m_sift_extraction);
 
   util::tic();
-  printf("m_PCA_basis: %d x %d\n", m_PCA_basis.cols(), m_PCA_basis.rows());
+  printf("m_PCA_basis: %ld x %ld\n", m_PCA_basis.cols(), m_PCA_basis.rows());
   work_image->linearFeatureCompression(m_PCA_basis);
   timing->m_dimension_reduction = (float)util::toc() / 1000.0f;
   printf("Dimension reduction costs %.02f ms\n", timing->m_dimension_reduction);
