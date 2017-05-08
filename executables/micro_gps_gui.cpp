@@ -158,7 +158,7 @@ void drawSetting() {
     // ImGui::SameLine();
     if (ImGui::Button("load map", ImVec2(-1, 0))) {
       int percentage;
-      sscanf(g_map_scale_list[g_map_scale_selected_idx].c_str(), "%d%", &percentage);
+      sscanf(g_map_scale_list[g_map_scale_selected_idx].c_str(), "%d", &percentage);
       // eventLoadMap(mgpsVars.load_map_image_path[mgpsVars.load_map_image_path_selected].c_str(), (double)percentage / 100.0f);
     }
   }
@@ -185,13 +185,15 @@ void drawSetting() {
     util::listDir(g_database_root, g_database_list, "", true); // list databases
     ImGui::Combo("database", &g_database_selected_idx, g_database_list);
     char selected_database_path[256];
-    sprintf(selected_database_path, g_database_list[g_database_selected_idx].c_str();
+    sprintf(selected_database_path, "%s/%s", g_database_root,
+                                             g_database_list[g_database_selected_idx].c_str());
 
     // PCA basis
     util::listDir(g_PCA_basis_root, g_pca_basis_list, "", true); // list PCA bases
     ImGui::Combo("PCA basis", &g_pca_basis_selected_idx, g_pca_basis_list);
     char selected_pca_basis_path[256];
-    sprintf(selected_pca_basis_path, g_pca_basis_list[g_pca_basis_selected_idx].c_str();
+    sprintf(selected_pca_basis_path, "%s/%s", g_PCA_basis_root,
+                                              g_pca_basis_list[g_pca_basis_selected_idx].c_str());
     if (ImGui::Button("reload", ImVec2(-1, 0))) {
       // eventInitMicroGPS(mgpsVars.cell_size, mgpsVars.scale_groups, 
       //                   mgpsVars.load_database_path[mgpsVars.load_database_path_selected].c_str(),
@@ -232,85 +234,99 @@ void drawSetting() {
 
     static int prev_test_index = -1;
     if (g_test_index != prev_test_index) {
-      WorkImage* current_test_frame = new WorkImage(mgpsVars.dataset->getTestImage(g_test_index));
-      current_test_frame->loadImage();
-      mgpsVars.test_image_texture.loadTextureFromWorkImage(current_test_frame);
-      delete current_test_frame;
+      // WorkImage* current_test_frame = new WorkImage(mgpsVars.dataset->getTestImage(g_test_index));
+      // current_test_frame->loadImage();
+      // mgpsVars.test_image_texture.loadTextureFromWorkImage(current_test_frame);
+      // delete current_test_frame;
       prev_test_index = g_test_index;
     }
 
-    ImGui::InputFloat("sift scale", &mgpsVars.options.image_scale_for_sift, 0.05f, 0.0f, 2);
-    if (mgpsVars.options.image_scale_for_sift <= 0.0) { // set some limit
-      mgpsVars.options.image_scale_for_sift = 0.05;
-    } else if (mgpsVars.options.image_scale_for_sift > 1.0) {
-      mgpsVars.options.image_scale_for_sift = 1.0;      
+    ImGui::InputFloat("sift scale", &g_localizer_options.m_image_scale_for_sift, 0.05f, 0.0f, 2);
+    if (g_localizer_options.m_image_scale_for_sift <= 0.0) { // set some limit
+      g_localizer_options.m_image_scale_for_sift = 0.05;
+    } else if (g_localizer_options.m_image_scale_for_sift > 1.0) {
+      g_localizer_options.m_image_scale_for_sift = 1.0;      
     }
 
-    ImGui::InputInt("best kNN", &mgpsVars.options.best_knn);
-    if (mgpsVars.options.best_knn <= 0) { // set some limit
-      mgpsVars.options.best_knn = 1;
+    ImGui::InputInt("best kNN", &g_localizer_options.m_best_knn);
+    if (g_localizer_options.m_best_knn <= 0) { // set some limit
+      g_localizer_options.m_best_knn = 1;
     }
 
     if (ImGui::Button("locate", ImVec2(-1, 0))) {
-      testCurrentFrame();
+      // testCurrentFrame();
     }
   }
 
   // ======================================== Training ========================================
   ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Once);
   if (ImGui::CollapsingHeader("Training")) {
-
-    ImGui::InputText("map path", mgpsVars.save_map_image_path, 256);
-    static int save_map_scale_selected = 0;
-
-    ImGui::Combo("map scale###save", &save_map_scale_selected, mgpsVars.map_scales);
+    char save_map_image_name[256];
+    ImGui::InputText("map path", save_map_image_name, 256);
+    static int save_map_scale_selected_idx = 0;
+    ImGui::Combo("map scale###save", &save_map_scale_selected_idx, g_map_scale_list);
 
     if (ImGui::Button("generate map", ImVec2(-1, 0))) {
       char s[256];
-      sprintf(s, "%s/%s", mgpsVars.map_image_root, mgpsVars.save_map_image_path);
+      sprintf(s, "%s/%s", g_map_image_root, save_map_image_name);
       int percentage;
-      sscanf(mgpsVars.map_scales[save_map_scale_selected].c_str(), "%d%", &percentage);
-      generateMapFromDataset(mgpsVars.dataset, s, (float)percentage / 100.0f);
+      sscanf(g_map_scale_list[save_map_scale_selected_idx].c_str(), "%d", &percentage);
+      // generateMapFromDataset(mgpsVars.dataset, s, (float)percentage / 100.0f);
     }
    
-    ImGui::InputInt("sample size", &mgpsVars.feature_sample_size);
-    if (mgpsVars.feature_sample_size <= 0) { // set some limit
-      mgpsVars.feature_sample_size = 1;
+    ImGui::InputInt("sample size", &g_database_sample_size);
+    if (g_database_sample_size <= 0) { // set some limit
+      g_database_sample_size = 1;
     }
 
-    ImGui::InputText("database###save_database", mgpsVars.save_database_path, 256);
-    ImGui::InputText("PCA basis###save_pca_basis", mgpsVars.save_PCA_basis_path, 256);
+    char save_database_name[256];
+    char save_PCA_basis_name[256];
+    ImGui::InputText("database###save_database", save_database_name, 256);
+    ImGui::InputText("PCA basis###save_pca_basis", save_PCA_basis_name, 256);
 
     if (ImGui::Button("process", ImVec2(-1, 0))) {
-      mgpsVars.micro_gps->preprocessDatabaseImages(mgpsVars.feature_sample_size, mgpsVars.options.image_scale_for_sift);
-      mgpsVars.micro_gps->computePCABasis();
-      mgpsVars.micro_gps->PCAreduction(mgpsVars.PCA_dimensions);
+      // mgpsVars.micro_gps->preprocessDatabaseImages(g_database_sample_size, g_localizer_options.image_scale_for_sift);
+      // mgpsVars.micro_gps->computePCABasis();
+      // mgpsVars.micro_gps->PCAreduction(mgpsVars.PCA_dimensions);
       char s[256];
-      sprintf(s, "%s/%s", mgpsVars.PCA_basis_root, mgpsVars.save_PCA_basis_path);
-      mgpsVars.micro_gps->savePCABasis(s);
-      sprintf(s, "%s/%s", mgpsVars.database_root, mgpsVars.save_database_path);
-      mgpsVars.micro_gps->saveFeatures(s);
+      sprintf(s, "%s/%s", g_PCA_basis_root, save_PCA_basis_name);
+      // mgpsVars.micro_gps->savePCABasis(s);
+      sprintf(s, "%s/%s", g_database_root, save_database_name);
+      // mgpsVars.micro_gps->saveFeatures(s);
       // mgpsVars.micro_gps->buildSearchIndex();
       // mgpsVars.micro_gps->buildSearchIndexMultiScales();
     }
   }
 
-
+  // ======================================== Monitor ========================================
   ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Once);
   if (ImGui::CollapsingHeader("Monitor")) {
 
     ImVec2 size = ImGui::GetContentRegionAvail();
    
-    eventPrintResults();
+    // eventPrintResults();
 
+    static bool show_test_window = false; 
     if (ImGui::Button("demo")) {
-      mgpsVars.show_test_window ^= 1;
+      show_test_window ^= 1;
     }
 
-    if (mgpsVars.show_test_window) {
+    if (show_test_window) {
       ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-      ImGui::ShowTestWindow(&mgpsVars.show_test_window);
+      ImGui::ShowTestWindow(&show_test_window);
     }
+
+    static bool show_style_editor = false; 
+    if (ImGui::Button("style")) {
+      show_style_editor ^= 1;
+    }
+
+    if (show_style_editor) {
+      ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
+      ImGui::ShowStyleEditor();
+    }
+
+
   }
 
   ImGui::End();
@@ -363,13 +379,14 @@ int main(int argc, char *argv[]) {
   // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
   ImGuiIO& io = ImGui::GetIO();
   // io.Fonts->AddFontDefault();
-  io.Fonts->AddFontFromFileTTF("../imgui_lib/extra_fonts/Cousine-Regular.ttf", 15.0f);
-  // io.Fonts->AddFontFromFileTTF("../imgui_lib/extra_fonts/DroidSans.ttf", 14.0f);
-  // io.Fonts->AddFontFromFileTTF("../imgui_lib/extra_fonts/ProggyClean.ttf", 13.0f);
-  // io.Fonts->AddFontFromFileTTF("../imgui_lib/extra_fonts/ProggyTiny.ttf", 10.0f);
+  io.Fonts->AddFontFromFileTTF("../imgui/lib/extra_fonts/Cousine-Regular.ttf", 15.0f);
+  // io.Fonts->AddFontFromFileTTF("../imgui/lib/extra_fonts/DroidSans.ttf", 15.0f);
+  // io.Fonts->AddFontFromFileTTF("../imgui/lib/extra_fonts/ProggyClean.ttf", 15.0f);
+  // io.Fonts->AddFontFromFileTTF("../imgui/lib/extra_fonts/ProggyTiny.ttf", 10.0f);
   // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, 
   //                              io.Fonts->GetGlyphRangesJapanese());
 
+  
   ImVec4 clear_color = ImColor(114, 144, 154);
 
   printf("entering glfw loop\n");
@@ -384,10 +401,9 @@ int main(int argc, char *argv[]) {
       glfwGetFramebufferSize(window, &g_glfw_display.framebuffer_w, &g_glfw_display.framebuffer_h);
 
       // drawGui();
-      bool show_test_window = true;
-      ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-      ImGui::ShowTestWindow(&show_test_window);
-
+      // ImGui::PushFont(io.Fonts->Fonts[2]);
+      drawSetting();
+      // ImGui::PopFont();
 
       // Rendering
       glViewport(0, 0, g_glfw_display.screen_w, g_glfw_display.screen_h);
@@ -397,6 +413,7 @@ int main(int argc, char *argv[]) {
       ImGui::Render();
       glfwSwapBuffers(window);
   }
+
 
   // Cleanup
   ImGui_ImplGlfwGL3_Shutdown();
