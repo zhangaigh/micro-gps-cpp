@@ -137,7 +137,7 @@ public:
   void          computePCABasis();
   void          dimensionReductionPCA(const int num_dimensions_to_keep);
   void          preprocessDatabaseImages(const int num_samples_per_image, 
-                                          const float image_scale_for_sift);
+                                         const float image_scale_for_sift);
   void          removeDuplicatedFeatures();
 
   void          buildSearchIndexMultiScales();
