@@ -39,7 +39,7 @@ char  g_feature_database_name[256];
 char  g_pca_basis_name[256];
 char  g_precomputed_feature_suffix[256];
 
-char  g_map_name[256];
+char  g_map_image_name[256];
 float g_map_scale;
 
 float g_cell_size;
@@ -54,6 +54,7 @@ MicroGPS::ImageDataset*        g_dataset = NULL;
 MicroGPS::LocalizationOptions  g_localizer_options;
 MicroGPS::LocalizationResult   g_localizer_result;
 MicroGPS::LocalizationTiming   g_localizer_timing;
+// MicroGPS::Image*               g_map_image;
 
 // basic variables 
 int g_num_frames_tested = 0;
@@ -61,6 +62,7 @@ int g_num_frames_succeeded = 0;
 int g_test_index = 0;
 
 // variables used by GUI
+// TODO: I think *selected_idx should be local variables
 GLFWDisplay               g_glfw_display;
 std::vector<std::string>  g_dataset_list;
 int                       g_dataset_selected_idx = 0;
@@ -74,6 +76,21 @@ std::vector<std::string>  g_database_list;
 int                       g_database_selected_idx = 0;
 std::vector<std::string>  g_pca_basis_list;
 int                       g_pca_basis_selected_idx = 0;
+
+
+float                     g_map_texture_avail_width;
+float                     g_map_texture_avail_height;
+float                     g_map_texture_screen_pos_x;
+float                     g_map_texture_screen_pos_y;
+float                     g_map_texture_display_scale;
+float                     g_map_texture_display_w;
+float                     g_map_texture_display_h;
+
+ImageGL3Texture           g_map_texture;
+ImageGL3Texture           g_map_feature_pose_overlay_texture;
+ImageGL3Texture           g_map_image_pose_overlay_texture;
+ImageGL3Texture           g_test_image_texture;
+ImageGL3Texture           g_alignment_texture;
 
 
 
@@ -115,6 +132,18 @@ void LoadVariablesFromCommandLine() {
 
   printf("g_dataset_name=%s\n", g_dataset_name);
 }
+
+
+
+float globalLength2TextureLength(float x) {
+  return x * g_map_scale * g_map_texture_display_scale;
+}
+
+void globalCoordinates2TextureCoordinates(float& x, float& y) {
+  // x = (x * g_map_scale - mgpsVars.world_min_x) * g_map_texture_display_scale;
+  // y = (y * g_map_scale - mgpsVars.world_min_y) * g_map_texture_display_scale;
+}
+
 
 void EventPreprocessing() {
   char selected_database_path[256];
@@ -193,6 +222,52 @@ void EventTestCurrentFrame() {
   delete alignment_image;
 }
 
+void EventGenerateMapFromDataset() {
+  char s[256];
+  sprintf(s, "%s/%s", g_map_image_root, g_map_image_name);
+
+  size_t n_images = g_dataset->getDatabaseSize();
+  // size_t n_images = 100;
+  std::vector<MicroGPS::Image*> work_images(n_images);
+  std::vector<Eigen::Matrix3f> work_image_poses(n_images);
+
+  for (size_t i = 0; i < n_images; i++) {
+    work_images[i] = new MicroGPS::Image(g_dataset->getDatabaseImagePath(i));
+    work_image_poses[i] = g_dataset->getDatabaseImagePose(i);
+  }
+
+  printf("all work images loaded\n");
+  MicroGPS::Image* map_image = MicroGPS::ImageFunc::warpImageArray(work_images, work_image_poses, g_map_scale);
+  map_image->write(s);
+
+  for (size_t i = 0; i < n_images; i++) {
+    delete work_images[i];
+  }
+}
+
+void EventLoadMap() {
+  char s[256];
+  sprintf(s, "%s/%s", g_map_image_root, g_map_image_name);
+
+  if (!util::checkFileExists(s)) {
+    EventGenerateMapFromDataset();
+  }
+
+  MicroGPS::Image* new_map = new MicroGPS::Image(s);
+  new_map->loadImage();
+  bool rotate90 = false;
+  if (g_map_texture_avail_height > g_map_texture_avail_width != 
+      new_map->height() > new_map->width()) {
+    rotate90 = true;
+  }
+  g_map_texture.loadTextureFromImage(new_map, rotate90);
+  delete new_map;
+
+  // computeMapOffsets(mgpsVars.dataset, map_scale,
+  //                   mgpsVars.world_min_x, mgpsVars.world_min_y);
+
+}
+
 
 void drawSetting() {
   ImGui::SetNextWindowSize(ImVec2(GUI_SETTING_WIDTH, g_glfw_display.screen_h));
@@ -238,7 +313,9 @@ void drawSetting() {
     if (ImGui::Button("load map", ImVec2(-1, 0))) {
       int percentage;
       sscanf(g_map_scale_list[g_map_scale_selected_idx].c_str(), "%d", &percentage);
-      // eventLoadMap(mgpsVars.load_map_image_path[mgpsVars.load_map_image_path_selected].c_str(), (double)percentage / 100.0f);
+      g_map_scale = (float)(percentage) / 100.0f;
+      strcpy(g_map_image_name, g_map_image_list[g_map_image_selected_idx].c_str());
+      EventLoadMap();
     }
   }
 
@@ -335,17 +412,18 @@ void drawSetting() {
   // ======================================== Training ========================================
   ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Once);
   if (ImGui::CollapsingHeader("Training")) {
-    char save_map_image_name[256];
+    static char save_map_image_name[256];
+    sprintf(save_map_image_name, "map.png");
     ImGui::InputText("map path", save_map_image_name, 256);
     static int save_map_scale_selected_idx = 0;
     ImGui::Combo("map scale###save", &save_map_scale_selected_idx, g_map_scale_list);
 
     if (ImGui::Button("generate map", ImVec2(-1, 0))) {
-      char s[256];
-      sprintf(s, "%s/%s", g_map_image_root, save_map_image_name);
       int percentage;
       sscanf(g_map_scale_list[save_map_scale_selected_idx].c_str(), "%d", &percentage);
-      // generateMapFromDataset(mgpsVars.dataset, s, (float)percentage / 100.0f);
+      g_map_scale = (float)percentage / 100.0f;
+      strcpy(g_map_image_name, save_map_image_name);      
+      EventGenerateMapFromDataset();
     }
    
     ImGui::InputInt("sample size", &g_database_sample_size);
@@ -353,9 +431,9 @@ void drawSetting() {
       g_database_sample_size = 1;
     }
 
-    char save_database_name[256];
+    static char save_database_name[256];
     sprintf(save_database_name, "*-siftgpu.bin");
-    char save_PCA_basis_name[256];
+    static char save_PCA_basis_name[256];
     sprintf(save_PCA_basis_name, "pca-*-siftgpu.bin");
     ImGui::InputText("database###save_database", save_database_name, 256);
     ImGui::InputText("PCA basis###save_pca_basis", save_PCA_basis_name, 256);
@@ -403,6 +481,165 @@ void drawSetting() {
 
 }
 
+
+
+void drawMapViewer() {
+  ImGui::SetNextWindowSize(ImVec2(g_glfw_display.screen_w-GUI_TEST_WIDTH-GUI_SETTING_WIDTH-GUI_GAP_SIZE*2,
+                                  g_glfw_display.screen_h));
+  ImGui::SetNextWindowPos(ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+  ImGui::Begin("Map", NULL,  ImGuiWindowFlags_NoCollapse|
+                             ImGuiWindowFlags_NoResize  |
+                             ImGuiWindowFlags_NoMove    |
+                             ImGuiWindowFlags_NoScrollbar);
+
+  ImVec2 region_avail = ImGui::GetContentRegionAvail(); // excluding padding
+  region_avail.y -= ImGui::GetItemsLineHeightWithSpacing() * 2;  // reserving space for other widgets
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2.0f, 2.0f));
+  ImGui::BeginChild("map_drawing_region", ImVec2(region_avail.x, region_avail.y), true);
+
+  ImVec2 im_disp_region = ImGui::GetContentRegionAvail();
+  g_map_texture_avail_width = im_disp_region.x;
+  g_map_texture_avail_height = im_disp_region.y;;
+
+  static int overlay_transparency = 128;
+  static int overlay_idx = 1;
+
+  // display the image
+  if (g_map_texture.active) {
+    // compute texture size
+    g_map_texture_display_scale = std::min(g_map_texture_avail_width /           
+                                           g_map_texture.width,
+                                           g_map_texture_avail_height / 
+                                           g_map_texture.height);
+    float tex_w = g_map_texture.width * g_map_texture_display_scale;
+    float tex_h = g_map_texture.height * g_map_texture_display_scale;
+    
+    if (g_map_texture_avail_width > tex_w) {
+      ImGui::Indent((g_map_texture_avail_width - tex_w) / 2.0f);
+    }
+    ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos(); // save cursor pose
+
+    // update texture info
+    g_map_texture_display_w = tex_w;
+    g_map_texture_display_h = tex_h;
+    g_map_texture_screen_pos_x = tex_screen_pos.x;
+    g_map_texture_screen_pos_y = tex_screen_pos.y;
+
+
+    ImGui::Image((void*)g_map_texture.id, ImVec2(tex_w, tex_h), 
+                  ImVec2(0,0), ImVec2(1,1), 
+                  ImColor(255,255,255,255), ImColor(0,0,0,0));
+    
+    ImGui::SetCursorScreenPos(tex_screen_pos); // go back
+
+
+    switch (overlay_idx) {
+      case 0:
+        if (g_map_feature_pose_overlay_texture.active) {
+          ImGui::Image((void*)g_map_feature_pose_overlay_texture.id, ImVec2(tex_w, tex_h), 
+                        ImVec2(0,0), ImVec2(1,1), 
+                        ImColor(255,255,255,overlay_transparency), ImColor(0,0,0,0));
+        }
+        break;
+      case 1:
+        if (g_map_image_pose_overlay_texture.active) {
+          ImGui::Image((void*)g_map_image_pose_overlay_texture.id, ImVec2(tex_w, tex_h), 
+                        ImVec2(0,0), ImVec2(1,1), 
+                        ImColor(255,255,255,overlay_transparency), ImColor(0,0,0,0));
+        }
+        break;
+    }
+
+    // draw estimated location / orientation
+    if (false) {
+      float center_x, center_y;
+      float x_axis_x, x_axis_y;
+      float y_axis_x, y_axis_y;
+      
+      center_x = g_localizer_result.m_final_estimated_pose(0, 2);
+      center_y = g_localizer_result.m_final_estimated_pose(1, 2);
+      globalCoordinates2TextureCoordinates(center_x, center_y);
+
+      if (g_map_texture.rotated90) {
+        float tmp = center_x;
+        center_x = g_map_texture_display_w - center_y;
+        center_y = tmp;
+        x_axis_y = g_localizer_result.m_final_estimated_pose(0, 0);
+        x_axis_x = -g_localizer_result.m_final_estimated_pose(1, 0);
+        y_axis_y = g_localizer_result.m_final_estimated_pose(0, 1);
+        y_axis_x = -g_localizer_result.m_final_estimated_pose(1, 1);        
+      } else {
+        x_axis_x = g_localizer_result.m_final_estimated_pose(0, 0);
+        x_axis_y = g_localizer_result.m_final_estimated_pose(1, 0);
+        y_axis_x = g_localizer_result.m_final_estimated_pose(0, 1);
+        y_axis_y = g_localizer_result.m_final_estimated_pose(1, 1);
+      }
+
+      center_x += tex_screen_pos.x;
+      center_y += tex_screen_pos.y;
+
+      if (false) {
+        ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
+                                            ImVec2(center_x + x_axis_x*15, center_y + x_axis_y*15),
+                                            ImColor(0,0,255,255), 2.0f);
+        ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
+                                            ImVec2(center_x + y_axis_x*15, center_y + y_axis_y*15),
+                                            ImColor(255,0,0,255), 2.0f);
+        ImGui::GetWindowDrawList()->AddCircle(ImVec2(center_x, center_y), 15, 
+                                              ImColor(0,255,0,255), 12, 2.0f);
+
+        // float frame_width = globalLength2TextureLength(1288);
+        // float frame_height = globalLength2TextureLength(964);
+        // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + x_axis_x*frame_width, center_y + x_axis_y*frame_width),
+        //                                       ImColor(255,0,0,255), 2.0f);
+        // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + y_axis_x*frame_height, center_y + y_axis_y*frame_height),
+        //                                       ImColor(0,0,255,255), 2.0f);
+        // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x + x_axis_x*frame_width + y_axis_x*frame_height, center_y + y_axis_y*frame_height + x_axis_y*frame_width), ImVec2(center_x + x_axis_x*frame_width, center_y + x_axis_y*frame_width),
+        //                                       ImColor(255,0,0,255), 2.0f);
+        // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x + x_axis_x*frame_width + y_axis_x*frame_height, center_y + y_axis_y*frame_height + x_axis_y*frame_width), ImVec2(center_x + y_axis_x*frame_height, center_y + y_axis_y*frame_height),
+        //                                       ImColor(0,0,255,255), 2.0f);
+
+      }
+    }
+  }
+
+  ImGui::EndChild();
+  ImGui::PopStyleVar();
+
+
+  static char save_rendered_map_path[256];
+  ImGui::PushItemWidth(250);
+  ImGui::InputText("###save_rendered_map_path", save_rendered_map_path, 256);
+  ImGui::PopItemWidth();
+  ImGui::SameLine();
+
+  if (ImGui::Button("save")) {
+    printf("saving map screenshot: %s\n", save_rendered_map_path);
+    // saveGUIRegion((int)mgpsVars.map_texture_info.screen_pos_x+1, (int)mgpsVars.map_texture_info.screen_pos_y,
+    //               (int)mgpsVars.map_texture_info.width, (int)mgpsVars.map_texture_info.height,
+    //               save_rendered_map_path);
+  }
+
+
+  ImGui::PushItemWidth(150);
+  ImGui::DragInt("overlay alpha", &overlay_transparency, 1.0f, 0, 255);
+  ImGui::PopItemWidth();
+
+  ImGui::SameLine();
+  ImGui::RadioButton("NN pose", &overlay_idx, 0); ImGui::SameLine();
+  ImGui::RadioButton("image pose", &overlay_idx, 1);
+  
+  // ImGui::SameLine();
+  // ImGui::Checkbox("Camera", &mgpsVars.draw_camera);
+
+
+  ImGui::End();
+  ImGui::PopStyleVar();
+
+
+}
 
 
 
@@ -463,6 +700,7 @@ int main(int argc, char *argv[]) {
       // drawGui();
       // ImGui::PushFont(io.Fonts->Fonts[2]);
       drawSetting();
+      drawMapViewer();
       // ImGui::PopFont();
 
       // Rendering
