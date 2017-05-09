@@ -23,7 +23,7 @@ void      matchFeatureBidirectional(Image* img1_ptr, Image* img2_ptr,
 
 // compute rigid transformation using matched keypoints, used by RANSAC
 void      computeRigidTransformation(Eigen::MatrixXf points1, Eigen::MatrixXf points2,
-                                      Eigen::MatrixXf& pose);
+                                     Eigen::MatrixXf& pose);
 
 
 // RANSAC - estimate rigid transformation
@@ -42,6 +42,27 @@ bool      estimatePoseFromMatchedImages(Image* img1_ptr, Image* img2_ptr,
                                         int num_ransac_iterations = 1000,
                                         float error_thresh = 3.0f);
 
+// compute the world limits for an image array
+void      computeImageArrayWorldLimits(std::vector<Image*>& images,
+                                       std::vector<Eigen::Matrix3f>& poses,
+                                       float warp_scale,
+                                       int& world_min_x,
+                                       int& world_min_y,
+                                       int& world_max_x,
+                                       int& world_max_y);
+
+// precompute warp mapping, do not do actual warping
+void      computeWarpImageMapping(int im_width, int im_height,
+                                  int world_min_x, int world_min_y,
+                                  int world_max_x, int world_max_y,
+                                  Eigen::Matrix3f pose,
+                                  std::vector<Eigen::Vector2f>& world_location,
+                                  std::vector<Eigen::Vector2f>& im_location);
+
+// warp an image array to generate a map
+Image*    warpImageArray(std::vector<Image*>& images,
+                         std::vector<Eigen::Matrix3f>& poses,
+                         float warp_scale = 0.25);
 
 
 

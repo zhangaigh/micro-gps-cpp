@@ -281,6 +281,263 @@ bool estimatePoseFromMatchedImages(Image* img1_ptr, Image* img2_ptr,
   }
 }
 
+// compute the world limits for an image array
+void computeImageArrayWorldLimits(std::vector<Image*>& images,
+                                  std::vector<Eigen::Matrix3f>& poses,
+                                  float warp_scale,
+                                  int& world_min_x,
+                                  int& world_min_y,
+                                  int& world_max_x,
+                                  int& world_max_y) {
+  int n_images = (int)poses.size();
+
+  images[0]->loadImage();
+  images[0]->resize(warp_scale);
+  int im_width = images[0]->width();
+  int im_height = images[0]->height();
+  images[0]->release();
+
+  float lx = 0;
+  float ux = (float)(im_width-1);
+  float ly = 0;
+  float uy = (float)(im_height-1);
+
+  Eigen::MatrixXf all_corners(2, n_images * 4);
+  for (int i = 0; i < n_images; i++) {
+    // std::cout << poses[i] << std::endl;
+
+    // resize pose as well
+    poses[i].block(0, 2, 2, 1) *= warp_scale;
+
+    // transform four corners
+    Eigen::MatrixXf corners(2, 4);
+    corners(0, 0) = lx;
+    corners(1, 0) = ly;
+    corners(0, 1) = lx;
+    corners(1, 1) = uy;
+    corners(0, 2) = ux;
+    corners(1, 2) = uy;
+    corners(0, 3) = ux;
+    corners(1, 3) = ly;
+
+    // std::cout << corners << std::endl;
+
+    corners = poses[i].block(0, 0, 2, 2) * corners;
+    corners.row(0) = corners.row(0).array() + poses[i](0, 2);
+    corners.row(1) = corners.row(1).array() + poses[i](1, 2);
+
+    // std::cout << corners << std::endl;
+
+    all_corners.block(0, i * 4, 2, 4) = corners;
+  }
+  // std::cout << all_corners << std::endl;
+
+
+  Eigen::MatrixXf lowerbound = all_corners.rowwise().minCoeff();
+  Eigen::MatrixXf upperbound = all_corners.rowwise().maxCoeff();
+
+  world_min_x = floor(lowerbound(0));
+  world_min_y = floor(lowerbound(1));
+  world_max_x = ceil(upperbound(0));
+  world_max_y = ceil(upperbound(1));
+}
+
+// precompute warp mapping, do not do actual warping
+void computeWarpImageMapping(int im_width, int im_height,
+                             int world_min_x, int world_min_y,
+                             int world_max_x, int world_max_y,
+                             Eigen::Matrix3f pose,
+                             std::vector<Eigen::Vector2f>& world_location,
+                             std::vector<Eigen::Vector2f>& im_location) {
+
+  float lx = 0;
+  float ux = (float)(im_width-1);
+  float ly = 0;
+  float uy = (float)(im_height-1);
+
+  // transform four corners
+
+  Eigen::MatrixXf corners(2, 4);
+  corners(0, 0) = lx;
+  corners(1, 0) = ly;
+  corners(0, 1) = lx;
+  corners(1, 1) = uy;
+  corners(0, 2) = ux;
+  corners(1, 2) = uy;
+  corners(0, 3) = ux;
+  corners(1, 3) = ly;
+
+  corners = pose.block(0, 0, 2, 2) * corners;
+  corners.row(0) = corners.row(0).array() + pose(0, 2);
+  corners.row(1) = corners.row(1).array() + pose(1, 2);
+  // corners = corners.colwise().add(pose.block(0, 2, 2, 1));
+
+  Eigen::MatrixXf lowerbound = corners.rowwise().minCoeff();
+  Eigen::MatrixXf upperbound = corners.rowwise().maxCoeff();
+
+
+  // printf("boundaries: min_x = %f, min_y = %f, max_x = %f, max_y = %f\n",
+  //         lowerbound(0), lowerbound(1), upperbound(0), upperbound(1));
+
+  int min_x = std::max((int)floor(lowerbound(0)), world_min_x);
+  int min_y = std::max((int)floor(lowerbound(1)), world_min_y);
+  int max_x = std::min((int)floor(upperbound(0)), world_max_x);
+  int max_y = std::min((int)floor(upperbound(1)), world_max_y);
+
+  // printf("boundaries: min_x = %d, min_y = %d, max_x = %d, max_y = %d\n",
+  //         min_x, min_y, max_x, max_y);
+
+  world_location.clear();
+  im_location.clear();
+  int num_idx = (max_x - min_x + 1) * (max_y - min_y + 1);
+  world_location.resize(num_idx);
+  im_location.resize(num_idx);
+  // printf("num_idx = %d\n", num_idx);
+
+  Eigen::MatrixXf inv_pose = pose.inverse();
+
+  int cnt = 0;
+  for (int x = min_x; x <= max_x; x++) {
+    for (int y = min_y; y <= max_y; y++) {
+      // inverse mapping
+      Eigen::MatrixXf pt(2, 1);
+      pt(0, 0) = (float)x;
+      pt(1, 0) = (float)y;
+      pt = inv_pose.block(0, 0, 2, 2) * pt + inv_pose.block(0, 2, 2, 1);
+
+      if (pt(0, 0) >= 0 && pt(0, 0) < im_width &&
+          pt(1, 0) >= 0 && pt(1, 0) < im_height) {
+
+        world_location[cnt](0) = (float)x;
+        world_location[cnt](1) = (float)y;
+
+        im_location[cnt](0) = pt(0, 0);
+        im_location[cnt](1) = pt(1, 0);
+        cnt++;
+      }
+    }
+  }
+  world_location.resize(cnt);
+  im_location.resize(cnt);
+
+  // printf("computeWarpImageMapping(): computed %d mapping\n", cnt);
+}
+
+// warp an image array to generate a map
+Image* warpImageArray(std::vector<Image*>& images,
+                      std::vector<Eigen::Matrix3f>& poses,
+                      float warp_scale) {
+  
+  int n_images = (int)poses.size();
+
+  if (n_images <= 0) {
+    printf("warpImageArray(): images array empty!\n");
+  } else {
+    printf("warpImageArray(): input %d images\n", n_images);
+  }
+
+
+  int world_min_x;
+  int world_min_y;
+  int world_max_x;
+  int world_max_y;
+
+  computeImageArrayWorldLimits(images, poses, warp_scale,
+                               world_min_x, world_min_y,
+                               world_max_x, world_max_y);
+
+  images[0]->loadImage();
+  images[0]->resize(warp_scale);
+  size_t im_width    = images[0]->width();
+  size_t im_height   = images[0]->height();
+  size_t im_channels = images[0]->channels();
+  images[0]->release();
+
+  int world_width = world_max_x - world_min_x + 1;
+  int world_height = world_max_y - world_min_y + 1;
+
+  int* world_pixel_weight = new int[world_width * world_height];
+  int* world_data_sum = new int[world_width * world_height * im_channels];
+  for (size_t pixel_idx = 0; pixel_idx < world_width*world_height; pixel_idx++) {
+    world_pixel_weight[pixel_idx] = 0;
+    for (size_t c_idx = 0; c_idx < im_channels; c_idx++) {
+      world_data_sum[pixel_idx * im_channels + c_idx] = 0;
+    }
+  }
+
+  for (int im_idx = 0; im_idx < n_images; im_idx++) {
+    printf("warpImageArray(): warping image %d\n", im_idx);
+
+    std::vector<Eigen::Vector2f> world_location;
+    std::vector<Eigen::Vector2f> im_location;
+
+    computeWarpImageMapping(im_width, im_height,
+                            world_min_x, world_min_y,
+                            world_max_x, world_max_y,
+                            poses[im_idx],
+                            world_location,
+                            im_location);
+
+
+    images[im_idx]->loadImage();
+    images[im_idx]->resize(warp_scale);
+
+    uchar* im_data = images[im_idx]->data();
+
+    for (size_t loc_idx = 0; loc_idx < world_location.size(); loc_idx++) {
+      int world_x = world_location[loc_idx](0) - world_min_x;
+      int world_y = world_location[loc_idx](1) - world_min_y;
+      int im_x = round(im_location[loc_idx](0));
+      int im_y = round(im_location[loc_idx](1));
+
+      if (im_x >= 0 && im_y >= 0 && im_x < im_width && im_y < im_height) {
+        world_pixel_weight[world_y * world_width + world_x] += 1;
+
+        for (size_t c_idx = 0; c_idx < im_channels; c_idx++) {
+          world_data_sum[(world_y * world_width + world_x) * im_channels + c_idx] +=
+                        (int)(im_data[(im_y * im_width + im_x) * im_channels + c_idx]);
+        }
+      }
+
+    }
+    images[im_idx]->release();
+  }
+
+
+  Image* world_image = new Image(world_width, world_height, im_channels);
+  uchar* world_data = world_image->data();
+
+  for (size_t pixel_idx = 0; pixel_idx < world_width*world_height; pixel_idx++) {
+    for (size_t c_idx = 0; c_idx < im_channels; c_idx++) {
+      world_data[pixel_idx * im_channels + c_idx] = 
+                                    (uchar)((double)world_data_sum[pixel_idx * im_channels + c_idx] / 
+                                            (double)(world_pixel_weight[pixel_idx]));
+    }
+  }
+
+  Image* world_image_weight = new Image(world_width, world_height, 1);
+  uchar* world_image_weight_data = world_image_weight->data();
+
+  for (int pixel_idx = 0; pixel_idx < world_width*world_height; pixel_idx++) {
+    world_image_weight_data[pixel_idx] = (uchar)world_pixel_weight[pixel_idx];
+  }
+
+  delete[] world_data_sum;
+  delete[] world_pixel_weight;
+
+  // if (output_path) {
+  //   world_image->write(output_path);
+  // }
+  // world_image_weight->write("world_weight.png");
+  // delete world_image;
+
+  delete world_image_weight;
+
+  return world_image;
+}
+
+
+
 
 
 
