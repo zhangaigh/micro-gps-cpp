@@ -74,6 +74,8 @@ public:
   // basic processing
   float           bilinearSample (float y, float x, unsigned ch = 0) const;
   void            bgr2gray();
+  void            resize(const float ratio);
+  void            rotate90(bool clockwise = true);
   Image*          clone() const;
 
   // crop a patch

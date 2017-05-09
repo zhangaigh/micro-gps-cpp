@@ -221,6 +221,56 @@ void Image::bgr2gray() {
   m_channels = 1;
 }
 
+void Image::resize(const float ratio) {
+  cv::Mat cv_im = convertToCvMat();
+  cv::Mat cv_im_small;
+  cv::resize(cv_im, cv_im_small, cv::Size(), ratio, ratio);
+
+  printf("WorkImage::resize(): resized to %d x %d x %d\n", cv_im_small.rows, 
+                                                           cv_im_small.cols, 
+                                                           cv_im_small.channels());
+
+  m_width = (size_t)cv_im_small.cols;
+  m_height = (size_t)cv_im_small.rows;
+
+  uchar* m_data_old = m_data;
+  m_data = new uchar[m_width * m_height * m_channels];
+  memcpy(m_data, cv_im_small.data, m_width * m_height * m_channels);
+  delete[] m_data_old; // clear old buffer
+  m_data_old = NULL;
+}
+
+void Image::rotate90(bool clockwise) {
+  uchar* m_data_old = m_data;
+  m_data = new uchar[m_width * m_height * m_channels];
+  
+  // copy elements to the new array
+  size_t new_width = m_height;
+  size_t new_height = m_width;
+  for (size_t y = 0; y < new_height; y++) {
+    for (size_t x = 0; x < new_width; x++) {
+      size_t old_x;
+      size_t old_y;
+      if (!clockwise) {
+        old_x = new_height - 1 - y;
+        old_y = x;        
+      } else {
+        old_x = y;
+        old_y = new_width - 1 - x;        
+      }
+      for (size_t c = 0; c < m_channels; c++) {
+        m_data[(y * new_width + x) * m_channels + c] = 
+                m_data_old[(old_y * m_width + old_x) * m_channels + c];
+      }
+    }
+  }
+  m_width = new_width;
+  m_height = new_height;
+
+  delete[] m_data_old;
+  m_data_old = NULL;
+}
+
 Image* Image::clone() const {
   Image* image_cloned = new Image(m_width, m_height, m_channels);
   memcpy(image_cloned->data(), m_data, m_height * m_width * m_channels);
@@ -466,12 +516,34 @@ void Image::linearFeatureCompression(const Eigen::MatrixXf& basis) {
 
 // private helpers
 cv::Mat Image::convertToCvMat() const{
-  cv::Mat cv_im;
-  if (m_channels == 3) {
-    cv_im = cv::Mat(m_height, m_width, CV_8UC3, m_data);
-  } else {
-    cv_im = cv::Mat(m_height, m_width, CV_8UC1, m_data);
-  }
+  // cv::Mat cv_im;
+  // if (m_channels == 3) {
+  //   cv_im = cv::Mat(m_height, m_width, CV_8UC3, m_data);
+  // } else {
+  //   cv_im = cv::Mat(m_height, m_width, CV_8UC1, m_data);
+  // }
+
+  int cv_mat_type;
+  switch (m_channels) {
+    case 0:
+      cv_mat_type = CV_8UC1;
+      break;
+    case 1:
+      cv_mat_type = CV_8UC2;
+      break;
+    case 3:
+      cv_mat_type = CV_8UC3;
+      break;
+    case 4:
+      cv_mat_type = CV_8UC4;
+      break;
+    default:
+      printf("Image::resize(): invalid number of channels\n");
+      exit(-1);
+  } 
+
+  cv::Mat cv_im = cv::Mat(m_height, m_width, cv_mat_type, m_data);
+
   return cv_im;   
 }
 
