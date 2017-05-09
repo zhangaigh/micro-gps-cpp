@@ -65,6 +65,14 @@ Image*    warpImageArray(std::vector<Image*>& images,
                          float warp_scale = 0.25);
 
 
+Image*    gaussianBlur(Image* img, float win_size, float sigma);
+
+
+void      gray2jet(float v,float vmin, float vmax,
+                   float& r, float& g, float& b);
+
+// Image*    grayImage2JetImage(Image* img);
+
 
 
 }

@@ -538,8 +538,70 @@ Image* warpImageArray(std::vector<Image*>& images,
 
 
 
+Image* gaussianBlur(Image* img, float win_size, float sigma) {
+  cv::Mat cv_mat = img->convertToCvMat();
+  cv::Mat out_mat;
+  cv::GaussianBlur(cv_mat, out_mat, cv::Size(win_size, win_size), sigma);
 
+  size_t h = img->height();
+  size_t w = img->width();
+  size_t c = img->channels(); 
+  Image* out = new Image(w, h, c);
+  memcpy(out->data(), out_mat.data, h*w*c);
+  return out;
+}
 
+void gray2jet(float v,float vmin, float vmax,
+              float& r, float& g, float& b) {
+  r = 1.0f;
+  g = 1.0f;
+  b = 1.0f;
+  float dv;
+
+  if (v < vmin)
+    v = vmin;
+  if (v > vmax)
+    v = vmax;
+  dv = vmax - vmin;
+
+  if (v < (vmin + 0.25 * dv)) {
+    r = 0;
+    g = 4 * (v - vmin) / dv;
+  } else if (v < (vmin + 0.5 * dv)) {
+    r = 0;
+    b = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
+  } else if (v < (vmin + 0.75 * dv)) {
+    r = 4 * (v - vmin - 0.5 * dv) / dv;
+    b = 0;
+  } else {
+    g = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
+    b = 0;
+  }
+}
+
+// Image* grayImage2JetImage(Image* img, float vmin, float vmax) {
+//   if (img->channels() == 3) {
+//     img->bgr2gray();
+//   } else if (img->channels() != 1) {
+//     printf("grayImage2JetImage: invalid number of channels\n");
+//     exit(-1);
+//   }
+
+//   size_t h = img->height();
+//   size_t w = img->width();
+//   Image* jet_img = new Image(w, h, 3);
+
+//   float r, g, b;
+//   for (size_t y = 0; y < h; y++) {
+//     for (size_t x = 0; x < w; x++) {
+//       gray2jet(img->getPixel(y, x), vmin, vmax, r, g, b);
+//       jet_img->getPixel(y, x, 0) = (uchar)r * 255.0f;
+//       jet_img->getPixel(y, x, 1) = (uchar)g * 255.0f;
+//       jet_img->getPixel(y, x, 2) = (uchar)b * 255.0f;
+//     }
+//   }
+//   return jet_img;
+// }
 
 
 
