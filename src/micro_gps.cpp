@@ -555,7 +555,7 @@ void Localization::locate(MicroGPS::Image* work_image,
                           LocalizationOptions* options,
                           LocalizationResult* results,
                           LocalizationTiming* timing,
-                          MicroGPS::Image* alignment_image) 
+                          MicroGPS::Image*& alignment_image) 
 {
   timing->reset();
   results->reset();
@@ -698,6 +698,7 @@ void Localization::locate(MicroGPS::Image* work_image,
   printf("RANSAC pose estimation costs %.02f ms\n", timing->m_ransac);
 
   results->m_final_estimated_pose = pose_estimated;
+  results->m_can_estimate_pose = true;
 
   timing->m_total = (float)util::toc() / 1000.0f;
   printf("Localization costs %.02f ms in total\n", timing->m_total);
@@ -728,6 +729,7 @@ void Localization::locate(MicroGPS::Image* work_image,
 
   if (!options->m_do_siftmatch_verification && !options->m_generate_alignment_image) {
     // verification is not required, return
+    results->m_success_flag = true; // we assume success if no verification
     return;
   }
 
@@ -791,6 +793,10 @@ void Localization::locate(MicroGPS::Image* work_image,
     results->m_closest_database_image_idx = closest_database_image_idx;
   }
 
+  if (closest_database_image_idx < 0) { // rarely happens
+    return;
+  }
+
   // match images using SIFT features
   MicroGPS::Image* closest_database_image = m_database_images[closest_database_image_idx];
   if (options->m_do_siftmatch_verification) {
@@ -833,13 +839,26 @@ void Localization::locate(MicroGPS::Image* work_image,
         float angle_verified = atan2(results->m_siftmatch_estimated_pose(0, 1), 
                                      results->m_siftmatch_estimated_pose(0, 0)) / M_PI * 180.0f;
         results->m_angle_error = angle_estimated - angle_verified;
+        // verification passed
+        results->m_success_flag = true;
       }
     }
-
   }
+
+  // generate alignment image
+  if (options->m_generate_alignment_image) {
+    //stitch images to verify
+    std::vector<MicroGPS::Image*> image_array;
+    image_array.push_back(closest_database_image);
+    image_array.push_back(work_image);
+    std::vector<Eigen::Matrix3f> pose_array;
+    pose_array.push_back(m_image_dataset->getDatabaseImagePose(closest_database_image_idx));
+    pose_array.push_back(pose_estimated);
+    // pose_array.push_back(result.siftmatch_estimated_pose);
+    alignment_image = MicroGPS::ImageFunc::warpImageArray(image_array, pose_array, 0.25);
+  }
+
   closest_database_image->release();
-
-
 
 
 }

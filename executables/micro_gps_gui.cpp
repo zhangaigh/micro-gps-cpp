@@ -59,6 +59,7 @@ MicroGPS::LocalizationTiming   g_localizer_timing;
 // basic variables 
 int g_num_frames_tested = 0;
 int g_num_frames_succeeded = 0;
+int g_prev_test_index = 0;
 int g_test_index = 0;
 
 // variables used by GUI
@@ -92,6 +93,9 @@ ImageGL3Texture           g_map_image_pose_overlay_texture;
 ImageGL3Texture           g_test_image_texture;
 ImageGL3Texture           g_alignment_texture;
 
+bool                      g_draw_camera = true;
+float                     g_world_min_x = 0.0f;
+float                     g_world_min_y = 0.0f;
 
 
 DEFINE_bool   (batch_test,        false,                                              "do batch test");
@@ -134,15 +138,129 @@ void LoadVariablesFromCommandLine() {
 }
 
 
+void computeMapOffsets() {
+  int n_images = (int)g_dataset->getDatabaseSize();
+  // int n_images = 100;
+  std::vector<MicroGPS::Image*> work_images(n_images);
+  std::vector<Eigen::Matrix3f> work_image_poses(n_images);
+
+  for (int i = 0; i < n_images; i++) {
+    work_images[i] = new MicroGPS::Image(g_dataset->getDatabaseImagePath(i));
+    work_image_poses[i] = g_dataset->getDatabaseImagePose(i);
+  }
+
+  int world_min_x;
+  int world_min_y;
+  int world_max_x;
+  int world_max_y;
+
+  MicroGPS::ImageFunc::computeImageArrayWorldLimits(work_images,
+                                                    work_image_poses,
+                                                    g_map_scale,
+                                                    world_min_x,
+                                                    world_min_y,
+                                                    world_max_x,
+                                                    world_max_y);
+
+  for (int i = 0; i < n_images; i++) {
+    delete work_images[i];
+  }
+
+  g_world_min_x = (float)world_min_x;
+  g_world_min_y = (float)world_min_y;
+}
 
 float globalLength2TextureLength(float x) {
   return x * g_map_scale * g_map_texture_display_scale;
 }
 
 void globalCoordinates2TextureCoordinates(float& x, float& y) {
-  // x = (x * g_map_scale - mgpsVars.world_min_x) * g_map_texture_display_scale;
-  // y = (y * g_map_scale - mgpsVars.world_min_y) * g_map_texture_display_scale;
+  x = (x * g_map_scale - g_world_min_x) * g_map_texture_display_scale;
+  y = (y * g_map_scale - g_world_min_y) * g_map_texture_display_scale;
 }
+
+
+void saveGUIRegion(int topleft_x, int topleft_y, int width, int height,
+                   const char* out_path) {
+
+  int multiplier_x = g_glfw_display.framebuffer_w / g_glfw_display.screen_w;
+  int multiplier_y = g_glfw_display.framebuffer_h / g_glfw_display.screen_h;
+
+  // we just read RGB
+  MicroGPS::Image screenshot(width * multiplier_x, height * multiplier_y, 3);
+
+  int lowerleft_x = topleft_x;
+  int lowerleft_y = g_glfw_display.screen_h - (topleft_y + height);
+
+  glReadBuffer(GL_FRONT); // wth is GL_FRONT_LEFT / GL_FRONT???
+  glPixelStorei(GL_PACK_ALIGNMENT, 1); // fixing the "multiples of 4" problem
+  glReadPixels(lowerleft_x * multiplier_x, lowerleft_y * multiplier_y,
+   	          width * multiplier_x, height * multiplier_y,
+             	GL_BGR,
+             	GL_UNSIGNED_BYTE,
+             	screenshot.data());
+
+  screenshot.flip(0);
+
+  char s[256];
+  sprintf(s, "%s/%s", g_test_results_root, out_path);
+  screenshot.write(s);
+}
+
+MicroGPS::Image* generateDistributionMap(std::vector<Eigen::Vector2f> points, 
+                                        float& vmin_out, float& vmax_out,
+                                        float vmin_in = -1.0, float vmax_in = -1.0) {
+  printf("generateDistributionMap\n");
+  int w = round(g_map_texture_display_w);
+  int h = round(g_map_texture_display_h);
+
+
+  cv::Mat map = cv::Mat::zeros(h, w, CV_32FC1);
+  int cnt = 0;
+  for (size_t i = 0; i < points.size(); i++) {
+    int x = (int)floor(points[i].x());
+    int y = (int)floor(points[i].y());
+    if (x < 0 || x > w-1 || y < 0 || y > h-1 ) {
+      continue;
+    }
+    cnt ++;
+    map.at<float>(y, x) += 1.0f;
+  }
+
+  cv::GaussianBlur(map, map, cv::Size(21, 21), 5.0f);
+
+  double vmin, vmax;
+  if (vmin_in >= 0.0 && vmax_in >= 0.0) {
+    vmin = vmin_in;
+    vmax = vmax_in;
+    printf("vmax = %f, vmin = %f\n", vmax, vmin);
+  } else {
+    cv::minMaxLoc(map, &vmin, &vmax);
+    vmin_out = vmin;
+    vmax_out = vmax;
+  }
+
+  cv::Mat map_jet(h, w, CV_32FC3);
+  for (int y = 0; y < h; y++) {
+    for (int x = 0; x < w; x++) {
+      float r,g,b;
+      float val = map.at<float>(y, x);
+      MicroGPS::ImageFunc::gray2jet(val, vmin, vmax, r, g, b);
+      map_jet.at<cv::Vec3f>(y, x)[0] = b;
+      map_jet.at<cv::Vec3f>(y, x)[1] = g;
+      map_jet.at<cv::Vec3f>(y, x)[2] = r;
+    }
+  }
+
+  map_jet *= 255.0f;
+  map_jet.convertTo(map_jet, CV_8UC3);
+
+  MicroGPS::Image* map_jet_image = new MicroGPS::Image(w, h, 3);
+  memcpy(map_jet_image->data(), map_jet.data, w*h*3);
+
+  return map_jet_image;
+}
+
 
 
 void EventPreprocessing() {
@@ -203,7 +321,7 @@ void EventTestCurrentFrame() {
 
   current_test_frame->loadImage();
 
-  MicroGPS::Image* alignment_image;
+  MicroGPS::Image* alignment_image = NULL;
   g_localizer_timing.reset();
   g_localizer_result.reset();
 
@@ -219,7 +337,59 @@ void EventTestCurrentFrame() {
   current_test_frame->release();
 
   delete current_test_frame;
-  delete alignment_image;
+
+  if (alignment_image) {
+    g_alignment_texture.loadTextureFromImage(alignment_image);
+    delete alignment_image;
+  } else {
+    g_alignment_texture.deactivate();
+  }
+
+  if (g_localizer_options.m_save_debug_info) {
+    int n_candidates = std::min(3000, (int)g_localizer_result.m_candidate_image_poses.size());
+    std::vector<Eigen::Vector2f> image_origins(n_candidates);
+    for (int fidx = 0; fidx < n_candidates; fidx++) {
+      float kp_x = g_localizer_result.m_candidate_image_poses[fidx](0, 2);
+      float kp_y = g_localizer_result.m_candidate_image_poses[fidx](1, 2);
+      globalCoordinates2TextureCoordinates(kp_x, kp_y);
+      image_origins[fidx](0) = kp_x;
+      image_origins[fidx](1) = kp_y;
+    }
+
+
+    float vmin_out, vmax_out;
+    MicroGPS::Image* image_pose_distribution = generateDistributionMap(image_origins,
+                                                                      vmin_out, vmax_out);
+    g_map_image_pose_overlay_texture.loadTextureFromImage(image_pose_distribution);
+    delete image_pose_distribution;
+    printf("vmax_out = %f, vmin_out = %f\n", vmax_out, vmin_out);
+
+    int n_keypoints = std::min(3000, (int)g_localizer_result.m_matched_feature_poses.size());
+    std::vector<Eigen::Vector2f> keypoints(n_keypoints);
+    for (int fidx = 0; fidx < n_keypoints; fidx++) {
+      float kp_x = g_localizer_result.m_matched_feature_poses[fidx](0, 2);
+      float kp_y = g_localizer_result.m_matched_feature_poses[fidx](1, 2);
+      globalCoordinates2TextureCoordinates(kp_x, kp_y);
+      keypoints[fidx](0) = kp_x;
+      keypoints[fidx](1) = kp_y;
+    }
+
+    float vmin_in = vmin_out;
+    float vmax_in = vmax_out;
+    MicroGPS::Image* feature_pose_distribution = generateDistributionMap(keypoints,
+                                                                        vmin_out, vmax_out,
+                                                                        vmin_in, vmax_in);
+    g_map_feature_pose_overlay_texture.loadTextureFromImage(feature_pose_distribution);
+    delete feature_pose_distribution;
+  } else {
+    g_map_image_pose_overlay_texture.deactivate();
+    g_map_feature_pose_overlay_texture.deactivate();
+  }
+
+
+
+
+
 }
 
 void EventGenerateMapFromDataset() {
@@ -263,9 +433,7 @@ void EventLoadMap() {
   g_map_texture.loadTextureFromImage(new_map, rotate90);
   delete new_map;
 
-  // computeMapOffsets(mgpsVars.dataset, map_scale,
-  //                   mgpsVars.world_min_x, mgpsVars.world_min_y);
-
+  computeMapOffsets();
 }
 
 
@@ -303,6 +471,8 @@ void drawSetting() {
     ImGui::SameLine();
     if (ImGui::Button("load test", ImVec2(-1, 0))) {
       g_dataset->loadTestSequenceByName(g_testset_list[g_testset_selected_idx].c_str());
+      g_prev_test_index = -1; // trigger refreshing
+      g_test_index = 0;
     }
 
     // load map image with scale
@@ -383,13 +553,15 @@ void drawSetting() {
     // eventTestAll(false);
     
     // update visualization of the test frame
-    static int prev_test_index = -1;
-    if (g_test_index != prev_test_index) {
-      // WorkImage* current_test_frame = new WorkImage(mgpsVars.dataset->getTestImage(g_test_index));
-      // current_test_frame->loadImage();
-      // mgpsVars.test_image_texture.loadTextureFromWorkImage(current_test_frame);
-      // delete current_test_frame;
-      prev_test_index = g_test_index;
+    if (g_test_index != g_prev_test_index && 
+        g_dataset != NULL &&
+        g_dataset->getTestSequenceSize() > 0) {
+      MicroGPS::Image* current_test_frame = 
+                      new MicroGPS::Image(g_dataset->getTestImagePath(g_test_index));
+      current_test_frame->loadImage();
+      g_test_image_texture.loadTextureFromImage(current_test_frame);
+      delete current_test_frame;
+      g_prev_test_index = g_test_index;
     }
 
     ImGui::InputFloat("sift scale", &g_localizer_options.m_image_scale_for_sift, 0.05f, 0.0f, 2);
@@ -553,7 +725,7 @@ void drawMapViewer() {
     }
 
     // draw estimated location / orientation
-    if (false) {
+    if (g_localizer_result.m_can_estimate_pose) {
       float center_x, center_y;
       float x_axis_x, x_axis_y;
       float y_axis_x, y_axis_y;
@@ -580,15 +752,22 @@ void drawMapViewer() {
       center_x += tex_screen_pos.x;
       center_y += tex_screen_pos.y;
 
-      if (false) {
+      if (g_draw_camera) {
         ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
                                             ImVec2(center_x + x_axis_x*15, center_y + x_axis_y*15),
                                             ImColor(0,0,255,255), 2.0f);
         ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
                                             ImVec2(center_x + y_axis_x*15, center_y + y_axis_y*15),
                                             ImColor(255,0,0,255), 2.0f);
+
+        ImColor circle_color;
+        if (g_localizer_result.m_success_flag) {
+          circle_color = ImColor(0, 255, 0, 255);
+        } else {
+          circle_color = ImColor(255, 0, 0, 255);          
+        }
         ImGui::GetWindowDrawList()->AddCircle(ImVec2(center_x, center_y), 15, 
-                                              ImColor(0,255,0,255), 12, 2.0f);
+                                              circle_color, 12, 2.0f);
 
         // float frame_width = globalLength2TextureLength(1288);
         // float frame_height = globalLength2TextureLength(964);
@@ -617,9 +796,9 @@ void drawMapViewer() {
 
   if (ImGui::Button("save")) {
     printf("saving map screenshot: %s\n", save_rendered_map_path);
-    // saveGUIRegion((int)mgpsVars.map_texture_info.screen_pos_x+1, (int)mgpsVars.map_texture_info.screen_pos_y,
-    //               (int)mgpsVars.map_texture_info.width, (int)mgpsVars.map_texture_info.height,
-    //               save_rendered_map_path);
+    saveGUIRegion((int)g_map_texture_screen_pos_x+1, (int)g_map_texture_screen_pos_y,
+                  (int)g_map_texture_display_w, (int)g_map_texture_display_h,
+                  save_rendered_map_path);
   }
 
 
@@ -631,16 +810,144 @@ void drawMapViewer() {
   ImGui::RadioButton("NN pose", &overlay_idx, 0); ImGui::SameLine();
   ImGui::RadioButton("image pose", &overlay_idx, 1);
   
-  // ImGui::SameLine();
-  // ImGui::Checkbox("Camera", &mgpsVars.draw_camera);
+  ImGui::SameLine();
+  ImGui::Checkbox("Camera", &g_draw_camera);
 
 
   ImGui::End();
   ImGui::PopStyleVar();
 
-
+  
 }
 
+
+void drawTestImageViewer() {
+  ImGui::SetNextWindowSize(ImVec2(GUI_TEST_WIDTH, GUI_TEST_WIDTH));
+  ImGui::SetNextWindowPos(ImVec2(g_glfw_display.screen_w-GUI_TEST_WIDTH-GUI_SETTING_WIDTH-GUI_GAP_SIZE, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+  ImGui::Begin("Test Image", NULL,  ImGuiWindowFlags_NoCollapse |
+                                    ImGuiWindowFlags_NoResize   |
+                                    ImGuiWindowFlags_NoMove     |
+                                    ImGuiWindowFlags_NoScrollbar);
+
+
+  ImVec2 region_avail = ImGui::GetContentRegionAvail(); // excluding padding
+  region_avail.y -= ImGui::GetItemsLineHeightWithSpacing();  // reserving space for other widgets
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2.0f, 2.0f));
+  ImGui::BeginChild("test_image_disp", ImVec2(region_avail.x, region_avail.y), true);
+
+  ImVec2 tex_screen_pos;
+  float tex_w;
+  float tex_h;
+
+  // display the image
+  if (g_test_image_texture.active) {
+    // compute texture size
+    ImVec2 im_disp_region = ImGui::GetContentRegionAvail();
+    float im_scaling = std::min(im_disp_region.x / g_test_image_texture.width, 
+                                im_disp_region.y / g_test_image_texture.height);
+    tex_w = g_test_image_texture.width * im_scaling;
+    tex_h = g_test_image_texture.height * im_scaling;
+
+    if (im_disp_region.x > tex_w) {
+      ImGui::Indent((im_disp_region.x - tex_w) / 2.0f);
+    }
+
+    tex_screen_pos = ImGui::GetCursorScreenPos();
+
+
+    ImGui::Image((void*)g_test_image_texture.id, 
+                  ImVec2(tex_w, tex_h), ImVec2(0,0), ImVec2(1,1), 
+                  ImColor(255,255,255,255), ImColor(0,0,0,0));
+
+    // ImGui::GetWindowDrawList()->AddImage((void*)g_test_image_texture.id, 
+    //                                       ImVec2(tex_screen_pos.x, tex_screen_pos.y),
+    //                                       ImVec2(tex_screen_pos.x+tex_w, tex_screen_pos.y+tex_h));
+
+  }
+
+  ImGui::EndChild();
+  ImGui::PopStyleVar();
+
+
+  static char save_rendered_test_image_path[256];
+  ImGui::PushItemWidth(250);
+  ImGui::InputText("###save_rendered_test_image_path", save_rendered_test_image_path, 256);
+  ImGui::PopItemWidth();
+  ImGui::SameLine();
+
+  if (ImGui::Button("save")) {
+    // printf("save image\n");
+    saveGUIRegion((int)tex_screen_pos.x+1, (int)tex_screen_pos.y, 
+                  (int)tex_w, (int)tex_h,
+                  save_rendered_test_image_path);
+  }
+
+  ImGui::End();
+  ImGui::PopStyleVar();
+}
+
+void drawAlignmentImageViewer() {
+  ImGui::SetNextWindowSize(ImVec2(GUI_TEST_WIDTH, GUI_TEST_WIDTH));
+  ImGui::SetNextWindowPos(ImVec2(g_glfw_display.screen_w-GUI_TEST_WIDTH-GUI_SETTING_WIDTH-GUI_GAP_SIZE, GUI_TEST_WIDTH+GUI_GAP_SIZE));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+  ImGui::Begin("Alignment", NULL, ImGuiWindowFlags_NoCollapse |
+                                  ImGuiWindowFlags_NoResize   |
+                                  ImGuiWindowFlags_NoMove     |
+                                  ImGuiWindowFlags_NoScrollbar);
+
+  ImVec2 region_avail = ImGui::GetContentRegionAvail(); // excluding padding
+  region_avail.y -= ImGui::GetItemsLineHeightWithSpacing();  // reserving space for other widgets
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2.0f, 2.0f));
+  ImGui::BeginChild("test_image_disp", ImVec2(region_avail.x, region_avail.y), true);
+
+
+  ImVec2 tex_screen_pos;
+  float tex_w;
+  float tex_h;
+
+  // display the image
+  if (g_alignment_texture.active) {
+    // compute texture size
+    ImVec2 im_disp_region = ImGui::GetContentRegionAvail();
+    float im_scaling = std::min(im_disp_region.x / g_alignment_texture.width, 
+                                im_disp_region.y / g_alignment_texture.height);
+    tex_w = g_alignment_texture.width * im_scaling;
+    tex_h = g_alignment_texture.height * im_scaling;
+
+    if (im_disp_region.x > tex_w) {
+      ImGui::Indent((im_disp_region.x - tex_w) / 2.0f);
+    }
+
+    tex_screen_pos = ImGui::GetCursorScreenPos();
+    ImGui::Image((void*)g_alignment_texture.id, 
+                  ImVec2(tex_w, tex_h), ImVec2(0,0), ImVec2(1,1), 
+                  ImColor(255,255,255,255), ImColor(0,0,0,0));
+  }
+
+  ImGui::EndChild();
+  ImGui::PopStyleVar();
+
+  static char save_rendered_alignment_path[256];
+  ImGui::PushItemWidth(250);
+  ImGui::InputText("###save_rendered_alignment_path", save_rendered_alignment_path, 256);
+  ImGui::PopItemWidth();
+  ImGui::SameLine();
+
+  if (ImGui::Button("save")) {
+    saveGUIRegion((int)tex_screen_pos.x+1, (int)tex_screen_pos.y, 
+                  (int)tex_w, (int)tex_h,
+                  save_rendered_alignment_path);
+  }
+
+
+  ImGui::SameLine();
+
+  ImGui::End();
+  ImGui::PopStyleVar();
+}
 
 
 
@@ -698,10 +1005,10 @@ int main(int argc, char *argv[]) {
       glfwGetFramebufferSize(window, &g_glfw_display.framebuffer_w, &g_glfw_display.framebuffer_h);
 
       // drawGui();
-      // ImGui::PushFont(io.Fonts->Fonts[2]);
       drawSetting();
       drawMapViewer();
-      // ImGui::PopFont();
+      drawTestImageViewer();
+      drawAlignmentImageViewer();
 
       // Rendering
       glViewport(0, 0, g_glfw_display.screen_w, g_glfw_display.screen_h);
@@ -717,7 +1024,13 @@ int main(int argc, char *argv[]) {
   ImGui_ImplGlfwGL3_Shutdown();
   glfwTerminate();
 
-  delete g_localizer;
+  if (g_localizer){
+    delete g_localizer;
+  }
+  if (g_dataset) {
+    delete g_dataset;
+  }
+  
 
   return 0;
 }

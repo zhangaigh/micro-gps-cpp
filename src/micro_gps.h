@@ -47,9 +47,10 @@ struct LocalizationResult {
   Eigen::MatrixXf               m_final_estimated_pose;
   std::vector<int>              m_top_cells;
   float                         m_confidence;
+  bool                          m_success_flag;
+  bool                          m_can_estimate_pose;
 
   // optionally compute
-  bool                          m_success_flag;
   Eigen::MatrixXf               m_siftmatch_estimated_pose;
   float                         m_x_error; //comparing with result from siftmatch
   float                         m_y_error; 
@@ -78,6 +79,7 @@ struct LocalizationResult {
 
     // optional
     m_success_flag                  = false;
+    m_can_estimate_pose             = false;
     m_siftmatch_estimated_pose      = Eigen::MatrixXf::Identity(3,3);
     m_x_error                       = -9999.9f;
     m_y_error                       = -9999.9f;
@@ -154,7 +156,7 @@ public:
                       LocalizationOptions* options,
                       LocalizationResult* results,
                       LocalizationTiming* timing,
-                      MicroGPS::Image* alignment_image);
+                      MicroGPS::Image*& alignment_image);
 
 private:
   // image dataset
