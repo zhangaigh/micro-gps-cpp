@@ -121,6 +121,7 @@ DEFINE_string (feat_suffix,       "sift",                                       
 
 void LoadVariablesFromCommandLine() {
   // TODO: overwrite g* variables with gflags values
+  // g_dataset_root = (char*)FLAGS_dataset_root.c_str();
   strcpy(g_dataset_name,                  FLAGS_dataset.c_str());
   strcpy(g_testset_name,                  FLAGS_testset.c_str());
   strcpy(g_test_results_name,             FLAGS_output.c_str());
@@ -311,8 +312,8 @@ void EventTestCurrentFrame() {
   char precomputed_feat_path[256];
   char precomputed_sift_path[256];
 
-  g_dataset->getTestImagePrecomputedFeatures(0, precomputed_feat_path);
-  g_dataset->getTestImagePrecomputedFeatures(1, precomputed_sift_path, (char*)("sift"));
+  g_dataset->getTestImagePrecomputedFeatures(g_test_index, precomputed_feat_path);
+  g_dataset->getTestImagePrecomputedFeatures(g_test_index, precomputed_sift_path, (char*)("sift"));
 
   MicroGPS::Image* current_test_frame = 
         new MicroGPS::Image(g_dataset->getTestImagePath(g_test_index),
@@ -385,11 +386,6 @@ void EventTestCurrentFrame() {
     g_map_image_pose_overlay_texture.deactivate();
     g_map_feature_pose_overlay_texture.deactivate();
   }
-
-
-
-
-
 }
 
 void EventGenerateMapFromDataset() {
@@ -434,6 +430,88 @@ void EventLoadMap() {
   delete new_map;
 
   computeMapOffsets();
+}
+
+void EventTestAll (bool trigger = false) {
+  static bool to_save = false;
+  static bool to_test = false;
+
+  if (trigger) {
+    to_save = false;
+    to_test = true;    
+    g_num_frames_tested = 0;
+    g_num_frames_succeeded = 0;
+    return;
+  }
+
+  static char s[256];
+  // save screenshots after the previous frame is rendered
+  if (to_save) {
+    saveGUIRegion((int)g_map_texture_screen_pos_x+1, (int)g_map_texture_screen_pos_y,
+                  (int)g_map_texture_display_w, (int)g_map_texture_display_h,
+                  s);
+    if (g_test_index < g_dataset->getTestSequenceSize() - 1) {
+      g_test_index++;
+      to_test = true;
+    }
+    // else if (FLAGS_batch_test) {
+    //   exit(0);
+    // }
+    to_save = false;
+  }
+
+  if (to_test) {
+    EventTestCurrentFrame();
+    sprintf(s, "frame%06d.png", g_test_index);
+    to_save = true;
+    to_test = false;
+    g_num_frames_tested++;
+    g_num_frames_succeeded += (int)g_localizer_result.m_success_flag;
+  } 
+}
+
+
+void EventPrintResults() {
+  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+                                                              ImGui::GetIO().Framerate);
+
+
+  ImGui::Text("Test result: %s (%d/%d) = %f%%", 
+                                      g_localizer_result.m_success_flag ? "SUCCESS" : "FAILURE",
+                                      g_num_frames_succeeded, g_num_frames_tested,
+                                      (float)g_num_frames_succeeded / 
+                                      (float)g_num_frames_tested * 100.0f);
+  ImGui::Text("dx=%.02f, dy=%.02f da=%.02f\n", g_localizer_result.m_x_error, 
+                                               g_localizer_result.m_y_error, 
+                                               g_localizer_result.m_angle_error);
+  ImGui::Text("Total time: %.3lf ms", g_localizer_timing.m_total);
+  ImGui::BulletText("SIFT extraction : %.3lf ms", 
+                                g_localizer_timing.m_sift_extraction);
+  ImGui::BulletText("KNN search : %.3lf ms", 
+                                g_localizer_timing.m_knn_search);
+  ImGui::BulletText("Compute candidate poses : %.3lf ms", 
+                                g_localizer_timing.m_candidate_image_pose);
+  ImGui::BulletText("Voting : %.3lf ms", g_localizer_timing.m_voting);
+  ImGui::BulletText("RANSAC : %.3lf ms", g_localizer_timing.m_ransac);
+
+  if (g_localizer_result.m_top_cells.size() > 0) {
+    int hist_max = *max_element(g_localizer_result.m_top_cells.begin(), 
+                                g_localizer_result.m_top_cells.end());
+    int n_cells = g_localizer_result.m_top_cells.size();
+    float* data = new float[n_cells];
+    for (int i = 0; i < n_cells; i++) {
+      data[i] = (float)g_localizer_result.m_top_cells[i];
+    }
+
+    ImGui::Columns(n_cells, NULL, true);
+    ImGui::Separator();
+    for (int i = 0; i < n_cells; i++) {
+        ImGui::Text("%.0f", data[i]);
+        ImGui::NextColumn();
+    }
+    ImGui::Columns(1);
+    ImGui::Separator();
+  }
 }
 
 
@@ -542,7 +620,7 @@ void drawSetting() {
     ImGui::PopItemWidth();
     ImGui::SameLine();
     if (ImGui::Button("test all")) {
-      // eventTestAll(true);
+      EventTestAll(true);
     }
     ImGui::Checkbox("Debug",      &g_localizer_options.m_save_debug_info);
     ImGui::SameLine();
@@ -550,7 +628,7 @@ void drawSetting() {
     ImGui::SameLine();
     ImGui::Checkbox("Alignment",  &g_localizer_options.m_generate_alignment_image);
 
-    // eventTestAll(false);
+    EventTestAll(false);
     
     // update visualization of the test frame
     if (g_test_index != g_prev_test_index && 
@@ -582,7 +660,7 @@ void drawSetting() {
   }
 
   // ======================================== Training ========================================
-  ImGui::SetNextTreeNodeOpen(true, ImGuiSetCond_Once);
+  ImGui::SetNextTreeNodeOpen(false, ImGuiSetCond_Once);
   if (ImGui::CollapsingHeader("Training")) {
     static char save_map_image_name[256];
     sprintf(save_map_image_name, "map.png");
@@ -623,7 +701,7 @@ void drawSetting() {
 
     ImVec2 size = ImGui::GetContentRegionAvail();
    
-    // eventPrintResults();
+    EventPrintResults();
 
     static bool show_test_window = false; 
     if (ImGui::Button("demo")) {
