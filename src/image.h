@@ -76,6 +76,7 @@ public:
   void            bgr2gray();
   void            resize(const float ratio);
   void            rotate90(bool clockwise = true);
+  void            flip(bool horizontal = false);
   Image*          clone() const;
 
   // crop a patch
@@ -92,8 +93,9 @@ public:
   LocalFeature*   getLocalFeature(size_t idx);
   void            linearFeatureCompression(const Eigen::MatrixXf& basis);
 
-private:
+  // helper
   cv::Mat         convertToCvMat() const;
+private:
   
   char                        m_image_path[256];
   char                        m_precomputed_feat_path[256];

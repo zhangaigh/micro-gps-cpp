@@ -72,6 +72,10 @@ Image::Image(const size_t width, const size_t height, const size_t channels) :
   strcpy(m_image_path, "");
   strcpy(m_precomputed_feat_path, "");
   strcpy(m_precomputed_sift_path, "");
+  // clear buffer
+  for (size_t i = 0; i < width * height * channels; i++) {
+    m_data[i] = 0;
+  }
 }
 
 // destructor
@@ -82,7 +86,9 @@ Image::~Image() {
 // load / release buffer
 void Image::loadImage() {
   printf("Image::loadImage(): loading %s\n", m_image_path);
-  cv::Mat bgr = cv::imread(m_image_path, CV_LOAD_IMAGE_UNCHANGED);
+  // cv::Mat bgr = cv::imread(m_image_path, CV_LOAD_IMAGE_UNCHANGED);
+  // TODO: UNCHANGED is better
+  cv::Mat bgr = cv::imread(m_image_path, CV_LOAD_IMAGE_COLOR);
   printf("Image::loadImage(): image loaded: %d x %d x %d\n", bgr.rows, bgr.cols, bgr.channels());
 
   m_width = bgr.cols;
@@ -270,6 +276,35 @@ void Image::rotate90(bool clockwise) {
   delete[] m_data_old;
   m_data_old = NULL;
 }
+
+void Image::flip(bool horizontal) {
+  // flip in place
+  size_t h = m_height;
+  size_t w = m_width;
+  if (!horizontal) {
+    h = m_height / 2;
+  } else {
+    w = m_width / 2;
+  }
+  
+  for (size_t y = 0; y < h; y++) {
+    for (size_t x = 0; x < w; x++) {
+      for (size_t c = 0; c < m_channels; c++) {
+        uchar tmp = m_data[(y * m_width + x) * m_channels + c];
+        if (!horizontal){
+          m_data[(y * m_width + x) * m_channels + c] = 
+                m_data[((m_height - 1 - y) * m_width + x) * m_channels + c];
+          m_data[((m_height - 1 - y) * m_width + x) * m_channels + c] = tmp;
+        } else {
+          m_data[(y * m_width + x) * m_channels + c] = 
+                m_data[(y * m_width + m_width - 1 - x) * m_channels + c];
+          m_data[(y * m_width + m_width - 1 - x) * m_channels + c] = tmp; 
+        }
+      }
+    }
+  }
+}
+
 
 Image* Image::clone() const {
   Image* image_cloned = new Image(m_width, m_height, m_channels);
