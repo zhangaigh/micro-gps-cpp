@@ -727,10 +727,11 @@ void Localization::locate(MicroGPS::Image* work_image,
   }
   
 
-  if (!options->m_do_siftmatch_verification && !options->m_generate_alignment_image) {
-    // verification is not required, return
+  if (!options->m_do_siftmatch_verification) {
     results->m_success_flag = true; // we assume success if no verification
-    return;
+    if (!options->m_generate_alignment_image) {
+      return;
+    }
   }
 
   // allocate memory for inpolygon
