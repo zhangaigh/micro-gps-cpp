@@ -2,6 +2,13 @@
 #define _GUI_HELPER_H_
 
 #include <imgui.h>
+#include "micro_gps.h"
+#ifdef ON_MAC
+#include "OpenGL/gl.h"
+#else
+#include "GL/gl.h"
+#endif
+
 
 struct GLFWDisplay {
   int screen_w;
@@ -10,6 +17,24 @@ struct GLFWDisplay {
   int framebuffer_h;
 };
 
+
+struct ImageGL3Texture {
+  GLuint  id;
+  float   raw_width; // original texture width (no matter rotated or not)
+  float   raw_height;
+  float   width;
+  float   height;
+  bool    rotated90;
+  bool    active;
+
+  void  loadTextureFromImage(MicroGPS::Image* image, bool rotate90 = false);
+  // void loadTextureFromCVMat(cv::Mat& image, bool rotate90 = false);
+  void  deactivate();
+  // float width(); // get (rotated) width
+  // float height(); 
+
+  ImageGL3Texture();
+};
 
 
 static inline void gui_error_callback(int error, const char* description) {
