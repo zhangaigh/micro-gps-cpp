@@ -26,7 +26,7 @@ char* g_dataset_root      = (char*)("/Users/lgzhang/Documents/DATA/micro_gps_pac
 char* g_map_image_root    = (char*)("maps");
 char* g_database_root     = (char*)("databases");
 char* g_PCA_basis_root    = (char*)("pca_bases");
-char* g_screenshots_root  = (char*)("screenshots");
+// char* g_screenshots_root  = (char*)("screenshots");
 char* g_test_results_root = (char*)("test_results");
 #endif
 
@@ -204,13 +204,13 @@ void saveGUIRegion(int topleft_x, int topleft_y, int width, int height,
   screenshot.flip(0);
 
   char s[256];
-  sprintf(s, "%s/%s", g_test_results_root, out_path);
+  sprintf(s, "%s/%s/%s", g_test_results_root, g_test_results_name, out_path);
   screenshot.write(s);
 }
 
 MicroGPS::Image* generateDistributionMap(std::vector<Eigen::Vector2f> points, 
-                                        float& vmin_out, float& vmax_out,
-                                        float vmin_in = -1.0, float vmax_in = -1.0) {
+                                         float& vmin_out, float& vmax_out,
+                                         float vmin_in = -1.0, float vmax_in = -1.0) {
   printf("generateDistributionMap\n");
   int w = round(g_map_texture_display_w);
   int h = round(g_map_texture_display_h);
@@ -306,6 +306,11 @@ void EventInitLocalizer() {
  
   g_localizer->dimensionReductionPCA(g_dimensionality);
   g_localizer->buildSearchIndexMultiScales();
+
+  // prepare the result folder
+  char test_results_path[256];
+  sprintf(test_results_path, "%s/%s", g_test_results_root, g_test_results_name);
+  util::mkdirIfNotExists(test_results_path);
 }
 
 void EventTestCurrentFrame() {

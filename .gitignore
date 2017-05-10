@@ -1,7 +1,7 @@
 build/
 bin*
 .DS_Store
-
+scripts
 
 # Compiled Object files
 *.slo
