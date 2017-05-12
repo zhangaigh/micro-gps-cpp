@@ -203,8 +203,8 @@ void commandLineBatchTest() {
     char precomputed_feat_path[256];
     char precomputed_sift_path[256];
 
-    g_dataset->getTestImagePrecomputedFeatures(0, precomputed_feat_path);
-    g_dataset->getTestImagePrecomputedFeatures(1, precomputed_sift_path, (char*)"sift");
+    g_dataset->getTestImagePrecomputedFeatures(test_index, precomputed_feat_path);
+    g_dataset->getTestImagePrecomputedFeatures(test_index, precomputed_sift_path, (char*)"sift");
 
     MicroGPS::Image* current_test_frame = 
           new MicroGPS::Image(g_dataset->getTestImagePath(test_index),
