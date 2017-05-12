@@ -2,13 +2,14 @@ clear
 
 if ismac
   fid = fopen('../bin_mac/precompute_sift_script.sh', 'w');
+  micro_gps_data_root = '/Users/lgzhang/Documents/DATA/micro_gps_packed';
 else
   fid = fopen('../bin/precompute_sift_script.sh', 'w');
+  micro_gps_data_root = '/data/linguang/micro_gps_packed';
 end
 fprintf(fid, '#!/bin/bash\n');
 
 
-micro_gps_data_root = '/Users/lgzhang/Documents/DATA/micro_gps_packed';
 
 i = 1;
 dataset_info(i).dataset = 'acee_asphalt_long_packed';
