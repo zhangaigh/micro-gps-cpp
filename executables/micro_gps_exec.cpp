@@ -40,6 +40,7 @@ int   g_dimensionality;
 int   g_best_knn;
 int   g_database_sample_size;
 float g_sift_extraction_scale;
+int   g_frames_to_test;
 
 
 MicroGPS::Localization*        g_localizer = NULL;
@@ -68,7 +69,7 @@ DEFINE_int32  (num_scale_groups,  10,                                           
 DEFINE_int32  (feat_dim,          8,                                                  "dimensionality after PCA reduction");
 DEFINE_int32  (best_knn,          9999,                                               "use the best k nearest neighbors for voting");
 DEFINE_double (sift_ext_scale,    0.5,                                                "extract sift at this scale");
-
+DEFINE_int32  (frames_to_test,    9999999,                                            "max number of frames to test");
 // offline
 DEFINE_int32  (db_sample_size,    50,                                                 "number of features sampled from each database image");
 DEFINE_string (feat_suffix,       "sift",                                             "default suffix for precomputed feature");
@@ -91,6 +92,7 @@ void LoadVariablesFromCommandLine() {
   g_best_knn                            = FLAGS_best_knn;
   g_database_sample_size                = FLAGS_db_sample_size;
   g_sift_extraction_scale               = FLAGS_sift_ext_scale;
+  g_frames_to_test                      = FLAGS_frames_to_test;
 
   printf("g_dataset_name=%s\n", g_dataset_name);
 }
@@ -191,7 +193,9 @@ void commandLineBatchTest() {
 
 
   // for (int test_index = 0; test_index < g_dataset->getTestSequenceSize(); test_index++) {
-  for (int test_index = 0; test_index < 1; test_index++) {
+  g_frames_to_test = std::min(g_frames_to_test, (int)g_dataset->getTestSequenceSize());
+  
+  for (int test_index = 0; test_index < g_frames_to_test; test_index++) {
     char precomputed_feat_path[256];
     char precomputed_sift_path[256];
 
