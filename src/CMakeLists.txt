@@ -35,7 +35,7 @@ elseif(ON_VISIONGPU1)
   target_link_libraries(mgps
         ${OpenCV_LIBS}
         flann
-        cudart
+        # cudart
         siftgpu)
 
         
@@ -43,7 +43,7 @@ elseif(ON_TEGRA)
   target_link_libraries(mgps
         ${OpenCV_LIBS}
         flann
-        cudart
+        # cudart
         siftgpu)
 
 endif()

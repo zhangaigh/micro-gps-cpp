@@ -1,6 +1,7 @@
 message( STATUS "Building for:  " ${CMAKE_SYSTEM} "(" ${CMAKE_SYSTEM_PROCESSOR} ")" )
 option(ON_VISIONGPU1 "Option description" ON)
 add_definitions(-DON_VISIONGPU1)
+add_definitions(-DGFLAGS_NAMESPACE=gflags)
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
