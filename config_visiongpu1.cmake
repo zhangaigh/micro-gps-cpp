@@ -7,9 +7,10 @@ set(CMAKE_CXX_FLAGS "-std=c++11")
 set(EXECUTABLE_OUTPUT_PATH ${MY_DIR}/bin)
 
 # OpenCV
-find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIR})
-link_directories(${OpenCV_LIBS_DIR})
+set(OpenCV_DIR /home/linguangzhang/software/opencv-2.4.13/install/share/OpenCV)
+include(${OpenCV_DIR}/OpenCVConfig.cmake)
+include(${OpenCV_DIR}/OpenCVModules.cmake)
+message(STATUS "OpenCV_DIR=" ${OpenCV_DIR})
 
 
 # Eigen
@@ -20,8 +21,8 @@ include_directories(${Eigen3_INCLUDE_DIR})
 # FLANN
 # set(Flann_INCLUDE_DIR /usr/local/include/flann)
 # set(Flann_LIBS_DIR /usr/local/lib)
-set(Flann_INCLUDE_DIR /Users/lgzhang/Dropbox/Research/micro_gps/code/flann-1.8.4-src/install/include)
-set(Flann_LIBS_DIR /Users/lgzhang/Dropbox/Research/micro_gps/code/flann-1.8.4-src/install/lib)
+set(Flann_INCLUDE_DIR /home/linguangzhang/software/flann/install/include)
+set(Flann_LIBS_DIR /home/linguangzhang/software/flann/install/lib)
 include_directories(${Flann_INCLUDE_DIR})
 link_directories(${Flann_LIBS_DIR})
 
@@ -39,8 +40,8 @@ link_directories(${GLFW_LIBS_DIR})
 # link_directories(${VLFEAT_LIBS_DIR})
 
 # SiftGPU
-set(SiftGPU_INCLUDE_DIR /home/linguangzhang/Documents/micro-gps/SiftGPU/src/SiftGPU)
-set(SiftGPU_LIBS_DIR /home/linguangzhang/Documents/micro-gps/SiftGPU/bin)
+set(SiftGPU_INCLUDE_DIR /home/linguangzhang/software/SiftGPU/src/SiftGPU)
+set(SiftGPU_LIBS_DIR /home/linguangzhang/software/SiftGPU/bin)
 include_directories(${SiftGPU_INCLUDE_DIR})
 link_directories(${SiftGPU_LIBS_DIR})
 
@@ -52,5 +53,5 @@ link_directories(/usr/local/cuda/lib)
 # find_package(gflags REQUIRED)
 # message(STATUS "gflags_include = " ${gflags_INCLUDE_DIR})
 # message(STATUS ${gflags_LIBS_DIR})
-include_directories(/home/linguangzhang/Documents/micro-gps/gflags/build/include)
- link_directories(/home/linguangzhang/Documents/micro-gps/gflags/build/lib)
+include_directories(/home/linguangzhang/software/gflags/build/include)
+ link_directories(/home/linguangzhang/software/gflags/build/lib)
