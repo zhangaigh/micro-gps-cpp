@@ -157,13 +157,13 @@ public:
 
   // visual vocabs
   void          loadVisualWords(const char* path);
+  void          dimensionReductionPCAVisualWords();
   void          buildVisualWordsSearchIndex();
   void          findNearestVisualWords(flann::Matrix<float>& flann_query,
                                        std::vector<int>& vw_id);
   void          fillVisualWordCells();
   void          saveVisualWordCells(const char* path);
   void          loadVisualWordCells(const char* path);
-
   void          searchNearestNeighborsByVisualWords(MicroGPS::Image* work_image,
                                                     std::vector<int>& src_index,
                                                     std::vector<int>& des_index);
@@ -221,7 +221,7 @@ private:
   Eigen::MatrixXf                           m_feature_local_locations;
   float*                                    m_feature_poses_x;
   float*                                    m_feature_poses_y;
-
+  int                                       m_dimensions_to_keep;
 
 
   // FLANN data

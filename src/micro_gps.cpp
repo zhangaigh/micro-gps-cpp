@@ -8,6 +8,7 @@ Localization::Localization() {
   m_feature_poses_x = NULL;
   m_feature_poses_y = NULL;
   m_flann_visual_words_kdtree = NULL;
+  m_dimensions_to_keep = -1;
 }
 
 Localization::~Localization() {
@@ -108,11 +109,19 @@ void Localization::computePCABasis() {
 
 
 void Localization::dimensionReductionPCA(const int num_dimensions_to_keep) {
-  Eigen::MatrixXf PCA_basis_k_cols = m_PCA_basis.leftCols(num_dimensions_to_keep);
+  if (num_dimensions_to_keep < m_PCA_basis.cols()) {
+    Eigen::MatrixXf PCA_basis_k_cols = m_PCA_basis.leftCols(num_dimensions_to_keep);
 
-  m_features_short = m_features * PCA_basis_k_cols;
-  printf("dimensionReductionPCA(): m_features_short size: %ld x %ld\n", 
-                      m_features_short.rows(), m_features_short.cols());
+    m_features_short = m_features * PCA_basis_k_cols;
+    printf("dimensionReductionPCA(): m_features_short size: %ld x %ld\n", 
+                        m_features_short.rows(), m_features_short.cols());
+  } else {
+    m_features_short = m_features;
+    printf("dimensionReductionPCA(): use original features\n");
+  }
+
+  // save the parameter
+  m_dimensions_to_keep = num_dimensions_to_keep;
 }
 
 
@@ -419,11 +428,10 @@ void Localization::buildSearchIndexMultiScales() {
 }
 
 void Localization::searchNearestNeighborsMultiScales(MicroGPS::Image* work_image, 
-                                        std::vector<int>& nn_index, 
-                                        int best_knn)
+                                                    std::vector<int>& nn_index, 
+                                                    int best_knn)
 {
   int num_test_features = work_image->getNumLocalFeatures();
-  int num_dimensions_to_keep = m_PCA_basis.cols();
   int num_scales = m_features_short_flann_multi_scales.size();
 
   std::vector<flann::Matrix<float> > flann_query_multi_scales(num_scales);
@@ -451,9 +459,9 @@ void Localization::searchNearestNeighborsMultiScales(MicroGPS::Image* work_image
 
   // allocate memory and copy data
   for (int i = 0; i < num_scales; i++) {
-    flann_query_multi_scales[i] = flann::Matrix<float>(new float[bin_count[i] * num_dimensions_to_keep],   
+    flann_query_multi_scales[i] = flann::Matrix<float>(new float[bin_count[i] * m_dimensions_to_keep],   
                                                                   bin_count[i],
-                                                                  num_dimensions_to_keep);
+                                                                  m_dimensions_to_keep);
     flann_index_multi_scales[i] = flann::Matrix<int>(new int[bin_count[i]], bin_count[i], 1);
     flann_dist_multi_scales[i] = flann::Matrix<float>(new float[bin_count[i]], bin_count[i], 1);
   }
@@ -463,8 +471,12 @@ void Localization::searchNearestNeighborsMultiScales(MicroGPS::Image* work_image
     LocalFeature* f = work_image->getLocalFeature(i);
     int bin_index = bin_assignment[i];
     if (bin_index >= 0 ) {
-      for (size_t j = 0; j < num_dimensions_to_keep; j++) {
-        flann_query_multi_scales[bin_index][bin_counter[bin_index]][j] = f->descriptor_compressed[j];
+      for (size_t j = 0; j < m_dimensions_to_keep; j++) {
+        if (m_dimensions_to_keep < m_PCA_basis.cols()) {
+          flann_query_multi_scales[bin_index][bin_counter[bin_index]][j] = f->descriptor_compressed[j];
+        } else {
+          flann_query_multi_scales[bin_index][bin_counter[bin_index]][j] = f->descriptor[j];          
+        }
       }
       bin_counter[bin_index]++;
     }
@@ -654,6 +666,19 @@ void Localization::loadVisualWords(const char* path) {
   fclose(fp);
 }
 
+void Localization::dimensionReductionPCAVisualWords() {
+  Eigen::MatrixXf PCA_basis_k_cols = m_PCA_basis.leftCols(m_dimensions_to_keep);
+
+  if (m_dimensions_to_keep < m_PCA_basis.cols()) {
+    m_visual_words = m_visual_words * PCA_basis_k_cols;
+    printf("dimensionReductionPCAVisualWords(): m_visual_words size: %ld x %ld\n", 
+                                        m_visual_words.rows(), m_visual_words.cols());
+  } else {
+    printf("dimensionReductionPCAVisualWords(): use original visual words\n");
+  }
+
+}
+
 void Localization::buildVisualWordsSearchIndex() {
   bool index_built = m_flann_visual_words_kdtree != NULL;
 
@@ -703,12 +728,12 @@ void Localization::findNearestVisualWords(flann::Matrix<float>& flann_query,
 
 void Localization::fillVisualWordCells() {
   printf("start filling visual word cells\n");
-  flann::Matrix<float> flann_query(new float[m_features.rows() * m_features.cols()],
-                                            m_features.rows(), m_features.cols());
+  flann::Matrix<float> flann_query(new float[m_features_short.rows() * m_features_short.cols()],
+                                            m_features_short.rows(), m_features_short.cols());
   
-  for (int i = 0; i < m_features.rows(); i++) {
-    for (int j = 0; j < m_features.cols(); j++) {
-      flann_query[i][j] = m_features(i, j);
+  for (int i = 0; i < m_features_short.rows(); i++) {
+    for (int j = 0; j < m_features_short.cols(); j++) {
+      flann_query[i][j] = m_features_short(i, j);
     }
   }
 
@@ -765,15 +790,18 @@ void Localization::searchNearestNeighborsByVisualWords(MicroGPS::Image* work_ima
                                                         std::vector<int>& des_idx) {
 
   int num_test_features = work_image->getNumLocalFeatures();
-  int num_dimensions = m_visual_words.cols();
 
-  flann::Matrix<float> flann_query(new float[num_test_features * num_dimensions],
-                                            num_test_features, num_dimensions);
+  flann::Matrix<float> flann_query(new float[num_test_features * m_dimensions_to_keep],
+                                            num_test_features, m_dimensions_to_keep);
 
   for (int i = 0; i < num_test_features; i++) {
     LocalFeature* f = work_image->getLocalFeature(i);
-    for (int j = 0; j < num_dimensions; j++) {
-      flann_query[i][j] = f->descriptor[j];
+    for (int j = 0; j < m_dimensions_to_keep; j++) {
+      if (m_dimensions_to_keep < m_PCA_basis.cols()) {
+        flann_query[i][j] = f->descriptor_compressed[j];
+      } else {
+        flann_query[i][j] = f->descriptor[j];
+      }
     }
   }
   
@@ -818,11 +846,11 @@ void Localization::locateUseVW(MicroGPS::Image* work_image,
   timing->m_sift_extraction = (float)util::toc() / 1000.0f;
   printf("Getting features costs %.02f ms\n", timing->m_sift_extraction);
 
-  // util::tic();
-  // printf("m_PCA_basis: %ld x %ld\n", m_PCA_basis.cols(), m_PCA_basis.rows());
-  // work_image->linearFeatureCompression(m_PCA_basis);
-  // timing->m_dimension_reduction = (float)util::toc() / 1000.0f;
-  // printf("Dimension reduction costs %.02f ms\n", timing->m_dimension_reduction);
+  util::tic();
+  printf("m_PCA_basis: %ld x %ld\n", m_PCA_basis.cols(), m_PCA_basis.rows());
+  work_image->linearFeatureCompression(m_PCA_basis);
+  timing->m_dimension_reduction = (float)util::toc() / 1000.0f;
+  printf("Dimension reduction costs %.02f ms\n", timing->m_dimension_reduction);
 
   util::tic();
   std::vector<int> src_index;

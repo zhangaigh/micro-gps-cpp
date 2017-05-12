@@ -26,6 +26,7 @@ char* g_dataset_root      = (char*)("/Users/lgzhang/Documents/DATA/micro_gps_pac
 char* g_map_image_root    = (char*)("maps");
 char* g_database_root     = (char*)("databases");
 char* g_PCA_basis_root    = (char*)("pca_bases");
+char* g_visual_words_root = (char*)("visual_words");
 // char* g_screenshots_root  = (char*)("screenshots");
 char* g_test_results_root = (char*)("test_results");
 #endif
@@ -37,6 +38,7 @@ char  g_testset_name[256];
 char  g_test_results_name[256];
 char  g_feature_database_name[256];
 char  g_pca_basis_name[256];
+char  g_visual_words_name[256];
 char  g_precomputed_feature_suffix[256];
 
 char  g_map_image_name[256];
@@ -77,7 +79,8 @@ std::vector<std::string>  g_database_list;
 int                       g_database_selected_idx = 0;
 std::vector<std::string>  g_pca_basis_list;
 int                       g_pca_basis_selected_idx = 0;
-
+std::vector<std::string>  g_visual_words_list;
+int                       g_visual_words_selected_idx = 0;
 
 float                     g_map_texture_avail_width;
 float                     g_map_texture_avail_height;
@@ -523,6 +526,17 @@ void EventPrintResults() {
   }
 }
 
+void EventLoadVisualWords() {
+  char selected_visual_words_path[256];
+  sprintf(selected_visual_words_path, "%s/%s", g_visual_words_root,
+                                               g_visual_words_name);
+
+  g_localizer->loadVisualWords(selected_visual_words_path);
+  g_localizer->dimensionReductionPCAVisualWords();
+  g_localizer->buildVisualWordsSearchIndex();
+  g_localizer->fillVisualWordCells();
+}
+
 
 void drawSetting() {
   ImGui::SetNextWindowSize(ImVec2(GUI_SETTING_WIDTH, g_glfw_display.screen_h));
@@ -603,20 +617,25 @@ void drawSetting() {
     util::listDir(g_PCA_basis_root, g_pca_basis_list, "", true); // list PCA bases
     ImGui::Combo("PCA basis", &g_pca_basis_selected_idx, g_pca_basis_list);
 
-    if (ImGui::Button("reload", ImVec2(-1, 0))) {
+    // visual words
+    util::listDir(g_visual_words_root, g_visual_words_list, "", true);
+    ImGui::Combo("visual words", &g_visual_words_selected_idx, g_visual_words_list);
+    
+
+    if (ImGui::Button("reload", ImVec2(180, 0))) {
       strcpy(g_feature_database_name, g_database_list[g_database_selected_idx].c_str());
       strcpy(g_pca_basis_name, g_pca_basis_list[g_pca_basis_selected_idx].c_str());
       EventInitLocalizer();
     }
-
-    if (ImGui::Button("load visual words", ImVec2(-1, 0))) {
-      g_localizer->loadVisualWords("vocab.bin");
-      g_localizer->buildVisualWordsSearchIndex();
+    ImGui::SameLine();
+    if (ImGui::Button("load vw", ImVec2(180, 0))) {
+      strcpy(g_visual_words_name, g_visual_words_list[g_visual_words_selected_idx].c_str());
+      EventLoadVisualWords();
     }
 
-    if (ImGui::Button("load vw cells", ImVec2(-1, 0))) {
-      g_localizer->loadVisualWordCells("vw_cells.bin");
-    }
+    // if (ImGui::Button("load vw cells", ImVec2(-1, 0))) {
+    //   g_localizer->loadVisualWordCells("vw_cells.bin");
+    // }
 
 
     int max_test_index = 9999;
