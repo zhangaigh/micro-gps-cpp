@@ -46,7 +46,7 @@ include_directories(${SiftGPU_INCLUDE_DIR})
 link_directories(${SiftGPU_LIBS_DIR})
 
 include_directories(/usr/local/cuda/include)
-link_directories(/usr/local/cuda/lib)
+link_directories(/usr/local/cuda/lib64)
 
 
 # GFLAGS
