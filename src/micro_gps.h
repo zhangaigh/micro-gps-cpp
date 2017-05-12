@@ -97,6 +97,35 @@ struct LocalizationResult {
     m_closest_database_image_idx    = -1;
   }
 
+
+  void printToFile(FILE*& fp) {
+    fprintf(fp, "----- Result -----\n");
+    fprintf(fp, "Estimated Pose: %f %f %f %f %f %f %f %f %f\n", m_final_estimated_pose(0, 0), m_final_estimated_pose(0, 1), m_final_estimated_pose(0, 2),
+                                                                m_final_estimated_pose(1, 0), m_final_estimated_pose(1, 1), m_final_estimated_pose(1, 2),
+                                                                m_final_estimated_pose(2, 0), m_final_estimated_pose(2, 1), m_final_estimated_pose(2, 2));
+    fprintf(fp, "Success: %d\n", m_success_flag);
+    fprintf(fp, "Top cells: ");
+    for(size_t i =0; i < m_top_cells.size(); i++) {
+      fprintf(fp, "%d ", m_top_cells[i]);
+    }
+    fprintf(fp, "\n");
+
+    fprintf(fp, "SIFTMatch Estimated Pose: %f %f %f %f %f %f %f %f %f\n", m_siftmatch_estimated_pose(0, 0), m_siftmatch_estimated_pose(0, 1), m_siftmatch_estimated_pose(0, 2),
+                                                                          m_siftmatch_estimated_pose(1, 0), m_siftmatch_estimated_pose(1, 1), m_siftmatch_estimated_pose(1, 2),
+                                                                          m_siftmatch_estimated_pose(2, 0), m_siftmatch_estimated_pose(2, 1), m_siftmatch_estimated_pose(2, 2));
+
+    fprintf(fp, "x_error = %f, y_error = %f, angle_error = %f\n", m_x_error, m_y_error, m_angle_error);
+
+
+    fprintf(fp, "----- Debug info -----\n");
+    fprintf(fp, "Test image path: %s\n",              m_test_image_path.c_str());
+    fprintf(fp, "Closest database image path: %s\n",  m_closest_database_image_path.c_str());
+    fprintf(fp, "Grid step: %f\n",                    m_cell_size);
+    fprintf(fp, "Peak top-left x: %f\n",              m_peak_topleft_x);
+    fprintf(fp, "Peak top-left y: %f\n",              m_peak_topleft_y);
+  }
+
+
 };
 
 
@@ -121,6 +150,17 @@ struct LocalizationTiming {
     m_voting                = 0.0f;
     m_ransac                = 0.0f;
     m_total                 = 0.0f;
+  }
+
+
+  void printToFile(FILE*& fp) {
+    fprintf(fp, "----- Timing info -----\n");
+    fprintf(fp, "Total: %f ms\n",                   m_total);
+    fprintf(fp, "Feature Extraction: %f ms\n",      m_sift_extraction);
+    fprintf(fp, "NN Search: %f ms\n",               m_knn_search);
+    fprintf(fp, "Compute Candidate Poses: %f ms\n", m_candidate_image_pose);
+    fprintf(fp, "Voting: %f ms\n",                  m_voting);
+    fprintf(fp, "RANSAC: %f ms\n",                  m_ransac);
   }
 
 };
