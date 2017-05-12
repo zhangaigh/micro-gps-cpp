@@ -4,7 +4,7 @@ add_definitions(-DON_VISIONGPU1)
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
-set(EXECUTABLE_OUTPUT_PATH ${MY_DIR}/bin_visiongpu1)
+set(EXECUTABLE_OUTPUT_PATH ${MY_DIR}/bin)
 
 # OpenCV
 find_package(OpenCV REQUIRED)

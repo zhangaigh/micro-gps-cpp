@@ -5,7 +5,7 @@ add_definitions(-DON_TEGRA)
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
-set(EXECUTABLE_OUTPUT_PATH ${MY_DIR}/bin_tegra)
+set(EXECUTABLE_OUTPUT_PATH ${MY_DIR}/bin)
 
 
 # OpenCV
