@@ -25,6 +25,7 @@ struct LocalizationOptions {
   float m_image_scale_for_sift;
   int   m_best_knn;
   float m_confidence_thresh;  // not used
+  bool  m_use_visual_words;
 
   LocalizationOptions() {
     this->reset();
@@ -37,6 +38,7 @@ struct LocalizationOptions {
     m_image_scale_for_sift      = 0.5;
     m_best_knn                  = 9999;
     m_confidence_thresh         = 0.8f;
+    m_use_visual_words          = false;
   }
 };
 
@@ -141,6 +143,7 @@ public:
   void          preprocessDatabaseImages(const int num_samples_per_image, 
                                          const float image_scale_for_sift);
   void          removeDuplicatedFeatures();
+  void          removeDuplicatedFeatures2();
 
   void          buildSearchIndexMultiScales();
   void          searchNearestNeighborsMultiScales(MicroGPS::Image* work_image, 
@@ -152,17 +155,61 @@ public:
   void          saveFeatures(const char* path);
   void          loadFeatures(const char* path);
 
+  // visual vocabs
+  void          loadVisualWords(const char* path);
+  void          buildVisualWordsSearchIndex();
+  void          findNearestVisualWords(flann::Matrix<float>& flann_query,
+                                       std::vector<int>& vw_id);
+  void          fillVisualWordCells();
+  void          saveVisualWordCells(const char* path);
+  void          loadVisualWordCells(const char* path);
+
+  void          searchNearestNeighborsByVisualWords(MicroGPS::Image* work_image,
+                                                    std::vector<int>& src_index,
+                                                    std::vector<int>& des_index);
+  
+
+  void          locateUseVW(MicroGPS::Image* work_image, 
+                            LocalizationOptions* options,
+                            LocalizationResult* results,
+                            LocalizationTiming* timing,
+                            MicroGPS::Image*& alignment_image);
+
+  void          locateGlobalNN(MicroGPS::Image* work_image, 
+                              LocalizationOptions* options,
+                              LocalizationResult* results,
+                              LocalizationTiming* timing,
+                              MicroGPS::Image*& alignment_image);
+
   void          locate(MicroGPS::Image* work_image, 
                       LocalizationOptions* options,
                       LocalizationResult* results,
                       LocalizationTiming* timing,
                       MicroGPS::Image*& alignment_image);
 
+
+  int           getClosestDatabaseImage (Eigen::Matrix3f pose_estimated,
+                                         size_t im_width,
+                                         size_t im_height);
+
+  int           getClosestDatabaseImage2 (Eigen::Matrix3f pose_estimated,
+                                          size_t im_width,
+                                          size_t im_height);
+
+  void          verifyAndGenerateAlignmentImage (MicroGPS::Image* work_image, 
+                                                 Eigen::Matrix3f pose_estimated,
+                                                 LocalizationOptions* options,
+                                                 LocalizationResult* results,
+                                                 LocalizationTiming* timing,
+                                                 MicroGPS::Image*& alignment_image);
+
+
 private:
   // image dataset
   MicroGPS::ImageDataset*                   m_image_dataset;
   int                                       m_image_width;
   int                                       m_image_height;
+  std::vector<MicroGPS::Image*>             m_database_images;
 
   // image dataset
   Eigen::MatrixXf                           m_PCA_basis;  
@@ -176,7 +223,6 @@ private:
   float*                                    m_feature_poses_y;
 
 
-  std::vector<MicroGPS::Image*>             m_database_images;
 
   // FLANN data
   int                                       m_num_scale_groups;
@@ -193,6 +239,21 @@ private:
   float                                     m_grid_min_y;
   int                                       m_grid_width;
   int                                       m_grid_height;
+
+  // world limits
+  float                                     m_world_min_x;
+  float                                     m_world_min_y;
+  float                                     m_world_max_x;
+  float                                     m_world_max_y;
+
+  // visual vocabs
+  std::vector<std::vector<int> >            m_feature_vw_id;
+  Eigen::MatrixXf                           m_visual_words;
+  flann::Matrix<float>                      m_flann_visual_words_data;
+  flann::Index<L2<float> >*                 m_flann_visual_words_kdtree;
+
+
+
 
 
 };

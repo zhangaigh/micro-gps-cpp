@@ -115,7 +115,7 @@ void matchFeatureBidirectional(Image* img1_ptr, Image* img2_ptr,
         matched_idx1[cnt] = idx1;
         matched_idx2[cnt] = idx2;
 
-        // printf("%d <-> %d\n", idx1, idx2);
+        // printf("%d <-> %d: dist = %f\n", idx1, idx2, sqrt(flann_dist2[0][0]));
         cnt++;
       }
     }

@@ -212,8 +212,8 @@ MicroGPS::Image* generateDistributionMap(std::vector<Eigen::Vector2f> points,
                                          float& vmin_out, float& vmax_out,
                                          float vmin_in = -1.0, float vmax_in = -1.0) {
   printf("generateDistributionMap\n");
-  int w = round(g_map_texture_display_w);
-  int h = round(g_map_texture_display_h);
+  int w = round(g_map_texture_display_scale * g_map_texture.raw_width);
+  int h = round(g_map_texture_display_scale * g_map_texture.raw_height);
 
 
   cv::Mat map = cv::Mat::zeros(h, w, CV_32FC1);
@@ -264,32 +264,37 @@ MicroGPS::Image* generateDistributionMap(std::vector<Eigen::Vector2f> points,
 
 
 
-void EventPreprocessing() {
+void EventPreprocessing(bool create_anyway = true) {
   char selected_database_path[256];
   sprintf(selected_database_path, "%s/%s", g_database_root,
                                            g_feature_database_name);
   char selected_pca_basis_path[256];
   sprintf(selected_pca_basis_path, "%s/%s", g_PCA_basis_root,
                                             g_pca_basis_name);
+  
+  printf("selected_database_path = %s\n", selected_database_path);
+  printf("selected_pca_basis_path = %s\n", selected_pca_basis_path);
+  printf("start preprocessing\n");
+  
   // compute precomputed values
-  if (!util::checkFileExists(selected_database_path)) { // create if not exists
+  if (!util::checkFileExists(selected_database_path) || create_anyway) { // create if not exists
     g_localizer->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale);
     g_localizer->saveFeatures(selected_database_path);
   }
 
   // compute pca basis
-  if (!util::checkFileExists(selected_pca_basis_path)) { // create if not exists
+  if (!util::checkFileExists(selected_pca_basis_path) || create_anyway) { // create if not exists
     g_localizer->computePCABasis();  
     char s[256]; 
-    sprintf(s, "%s/pca_%s", g_PCA_basis_root, g_feature_database_name); // use standard name    
+    sprintf(s, "%s/pca-%s", g_PCA_basis_root, g_feature_database_name); // use standard name    
     g_localizer->savePCABasis(s);    
   }  
+  printf("done\n");
 }
 
 void EventInitLocalizer() {
   g_localizer->setVotingCellSize(g_cell_size);
   g_localizer->setNumScaleGroups(g_num_scale_groups);
-  g_localizer->loadImageDataset(g_dataset);
 
   char selected_database_path[256];
   sprintf(selected_database_path, "%s/%s", g_database_root,
@@ -298,7 +303,7 @@ void EventInitLocalizer() {
   sprintf(selected_pca_basis_path, "%s/%s", g_PCA_basis_root,
                                             g_pca_basis_name);
 
-  EventPreprocessing(); // run only if files don't exist
+  EventPreprocessing(false); // run only if files don't exist
   // reload precomputed values
   g_localizer->loadFeatures(selected_database_path);
   // reload pca basis
@@ -333,7 +338,6 @@ void EventTestCurrentFrame() {
 
   // TODO: set options
   // g_localizer_options.reset();
-
   g_localizer->locate(current_test_frame,
                       &g_localizer_options, 
                       &g_localizer_result,
@@ -366,7 +370,7 @@ void EventTestCurrentFrame() {
     float vmin_out, vmax_out;
     MicroGPS::Image* image_pose_distribution = generateDistributionMap(image_origins,
                                                                       vmin_out, vmax_out);
-    g_map_image_pose_overlay_texture.loadTextureFromImage(image_pose_distribution);
+    g_map_image_pose_overlay_texture.loadTextureFromImage(image_pose_distribution, g_map_texture.rotated90);
     delete image_pose_distribution;
     printf("vmax_out = %f, vmin_out = %f\n", vmax_out, vmin_out);
 
@@ -385,7 +389,7 @@ void EventTestCurrentFrame() {
     MicroGPS::Image* feature_pose_distribution = generateDistributionMap(keypoints,
                                                                         vmin_out, vmax_out,
                                                                         vmin_in, vmax_in);
-    g_map_feature_pose_overlay_texture.loadTextureFromImage(feature_pose_distribution);
+    g_map_feature_pose_overlay_texture.loadTextureFromImage(feature_pose_distribution, g_map_texture.rotated90);
     delete feature_pose_distribution;
   } else {
     g_map_image_pose_overlay_texture.deactivate();
@@ -546,6 +550,7 @@ void drawSetting() {
       }
       g_dataset = new MicroGPS::ImageDataset(selected_dataset_path);
       g_dataset->loadDatabaseImages();
+      g_localizer->loadImageDataset(g_dataset);
     }
 
     // load test sequence
@@ -604,6 +609,16 @@ void drawSetting() {
       EventInitLocalizer();
     }
 
+    if (ImGui::Button("load visual words", ImVec2(-1, 0))) {
+      g_localizer->loadVisualWords("vocab.bin");
+      g_localizer->buildVisualWordsSearchIndex();
+    }
+
+    if (ImGui::Button("load vw cells", ImVec2(-1, 0))) {
+      g_localizer->loadVisualWordCells("vw_cells.bin");
+    }
+
+
     int max_test_index = 9999;
     if (g_dataset) {
       max_test_index = g_dataset->getTestSequenceSize()-1;
@@ -659,6 +674,16 @@ void drawSetting() {
       g_localizer_options.m_best_knn = 1;
     }
 
+    static int locate_method = 0;
+    ImGui::RadioButton("NN", &locate_method, 0); ImGui::SameLine();
+    ImGui::RadioButton("VW", &locate_method, 1); ImGui::SameLine();
+
+    if (locate_method) {
+      g_localizer_options.m_use_visual_words = true;
+    } else {
+      g_localizer_options.m_use_visual_words = false;      
+    }
+
     if (ImGui::Button("locate", ImVec2(-1, 0))) {
       EventTestCurrentFrame();
     }
@@ -667,8 +692,8 @@ void drawSetting() {
   // ======================================== Training ========================================
   ImGui::SetNextTreeNodeOpen(false, ImGuiSetCond_Once);
   if (ImGui::CollapsingHeader("Training")) {
-    static char save_map_image_name[256];
-    sprintf(save_map_image_name, "map.png");
+    static char save_map_image_name[256] = "map.png";
+    // sprintf(save_map_image_name, "map.png");
     ImGui::InputText("map path", save_map_image_name, 256);
     static int save_map_scale_selected_idx = 0;
     ImGui::Combo("map scale###save", &save_map_scale_selected_idx, g_map_scale_list);
@@ -686,17 +711,25 @@ void drawSetting() {
       g_database_sample_size = 1;
     }
 
-    static char save_database_name[256];
-    sprintf(save_database_name, "*-siftgpu.bin");
-    static char save_PCA_basis_name[256];
-    sprintf(save_PCA_basis_name, "pca-*-siftgpu.bin");
+    static char save_database_name[256] = "*-siftgpu.bin";
+    // sprintf(save_database_name, "*-siftgpu.bin");
+    static char save_PCA_basis_name[256] = "pca-*-siftgpu.bin";
+    // sprintf(save_PCA_basis_name, "pca-*-siftgpu.bin");
     ImGui::InputText("database###save_database", save_database_name, 256);
     ImGui::InputText("PCA basis###save_pca_basis", save_PCA_basis_name, 256);
 
     if (ImGui::Button("process", ImVec2(-1, 0))) {
-      strcpy(g_feature_database_name, g_database_list[g_database_selected_idx].c_str());
-      strcpy(g_pca_basis_name, g_pca_basis_list[g_pca_basis_selected_idx].c_str());
+      strcpy(g_feature_database_name, save_database_name);
+      strcpy(g_pca_basis_name, save_PCA_basis_name);
       EventPreprocessing();
+    }
+
+    static char save_vw_cells_name[256] = "vw_cells.bin";
+    ImGui::InputText("###save_vw_cells", save_vw_cells_name, 256);
+    ImGui::SameLine();
+    if (ImGui::Button("vw cells", ImVec2(-1, 0))) {
+      g_localizer->fillVisualWordCells();
+      g_localizer->saveVisualWordCells(save_vw_cells_name);
     }
   }
 
@@ -837,11 +870,11 @@ void drawMapViewer() {
 
       if (g_draw_camera) {
         ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
-                                            ImVec2(center_x + x_axis_x*15, center_y + x_axis_y*15),
-                                            ImColor(0,0,255,255), 2.0f);
+                                            ImVec2(center_x + x_axis_x*20, center_y + x_axis_y*20),
+                                            ImColor(0,0,255,255), 4.0f);
         ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
-                                            ImVec2(center_x + y_axis_x*15, center_y + y_axis_y*15),
-                                            ImColor(255,0,0,255), 2.0f);
+                                            ImVec2(center_x + y_axis_x*20, center_y + y_axis_y*20),
+                                            ImColor(255,0,0,255), 4.0f);
 
         ImColor circle_color;
         if (g_localizer_result.m_success_flag) {
@@ -849,8 +882,8 @@ void drawMapViewer() {
         } else {
           circle_color = ImColor(255, 0, 0, 255);          
         }
-        ImGui::GetWindowDrawList()->AddCircle(ImVec2(center_x, center_y), 15, 
-                                              circle_color, 12, 2.0f);
+        ImGui::GetWindowDrawList()->AddCircle(ImVec2(center_x, center_y), 20, 
+                                              circle_color, 24, 4.0f);
 
         // float frame_width = globalLength2TextureLength(1288);
         // float frame_height = globalLength2TextureLength(964);
@@ -1043,7 +1076,6 @@ int main(int argc, char *argv[]) {
 
   MicroGPS::initSiftGPU();
   g_localizer = new MicroGPS::Localization();
-  
   
   // Setup window
   glfwSetErrorCallback(gui_error_callback);

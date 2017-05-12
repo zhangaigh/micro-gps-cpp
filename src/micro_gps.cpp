@@ -7,11 +7,19 @@ Localization::Localization() {
   m_grid_step = 50.0f;
   m_feature_poses_x = NULL;
   m_feature_poses_y = NULL;
+  m_flann_visual_words_kdtree = NULL;
 }
 
 Localization::~Localization() {
-  delete[] m_feature_poses_x;
-  delete[] m_feature_poses_y;
+  if (m_feature_poses_x) {
+    delete[] m_feature_poses_x;
+    delete[] m_feature_poses_y;
+  }
+
+  if (m_flann_visual_words_kdtree) {
+    delete[] m_flann_visual_words_data.ptr();
+    delete m_flann_visual_words_kdtree;
+  }
 }
 
 void Localization::setVotingCellSize(const float cell_size) {
@@ -64,6 +72,12 @@ void Localization::loadImageDataset(MicroGPS::ImageDataset* image_dataset) {
   upperbound(1) += (2 * radius + m_grid_step / 2.0f);
   lowerbound(0) -= (2 * radius + m_grid_step / 2.0f);
   lowerbound(1) -= (2 * radius + m_grid_step / 2.0f);
+
+  // save world limits
+  m_world_min_x = lowerbound(0);
+  m_world_min_y = lowerbound(1);
+  m_world_max_x = upperbound(0);
+  m_world_max_y = upperbound(1);
 
   // precompute grid
   m_grid_width = ceil((upperbound(0) - lowerbound(0)) / m_grid_step);
@@ -149,7 +163,7 @@ void Localization::preprocessDatabaseImages(const int num_samples_per_image,
   m_features.conservativeResize(cnt, m_features.cols());
   m_feature_local_locations.conservativeResize(cnt, 4);
 
-  removeDuplicatedFeatures();
+  removeDuplicatedFeatures2();
 
   printf("preprocessDatabaseImages(): removed %ld duplicated features\n", cnt - m_features.rows());
 
@@ -186,7 +200,7 @@ void Localization::removeDuplicatedFeatures() {
       Eigen::Matrix3f im_pose_j = m_image_dataset->getDatabaseImagePose(m_feature_image_indices[j]);
       // TODO: threshold is hard coded for siftgpu
       if ((m_feature_poses[j].col(2) - m_feature_poses[i].col(2)).norm() < 8.0f && 
-          (m_features.row(i) - m_features.row(j)).norm() < 0.6f) {
+          (m_features.row(i) - m_features.row(j)).norm() < 0.4f) {
         Eigen::Vector3f center_loc;
         center_loc(0) = (float)m_image_width / 2.0f;
         center_loc(1) = (float)m_image_height / 2.0f;
@@ -228,6 +242,78 @@ void Localization::removeDuplicatedFeatures() {
   m_feature_scales = feature_scales_shrinked;
   m_features = features_shrinked;
 
+}
+
+void Localization::removeDuplicatedFeatures2() {
+  // occupancy grid
+  float grid_step = 10.0f;
+  int grid_w = (int)((m_world_max_x - m_world_min_x) / grid_step);
+  int grid_h = (int)((m_world_max_y - m_world_min_y) / grid_step);
+  int* occupied_by = new int[grid_w * grid_h];
+  float* dist2center = new float[grid_w * grid_h];
+  for (size_t i = 0; i < grid_w * grid_h; i++) {
+    occupied_by[i] = -1;
+    dist2center[i] = 9999.9f;
+  }
+
+  size_t num_features = m_features.rows(); // current number of features
+
+  for (size_t f_idx = 0; f_idx < num_features; f_idx++) {
+    Eigen::Matrix3f f_pose = m_feature_poses[f_idx];
+    int cell_x = (int)(f_pose(0, 2) - m_world_min_x) / grid_step;
+    int cell_y = (int)(f_pose(1, 2) - m_world_min_y) / grid_step;
+    
+    Eigen::Matrix3f im_pose = m_image_dataset->getDatabaseImagePose(m_feature_image_indices[f_idx]);
+    Eigen::Vector3f center_loc;
+    center_loc(0) = (float)m_image_width / 2.0f;
+    center_loc(1) = (float)m_image_height / 2.0f;
+    center_loc(2) = 1.0f;
+    Eigen::Vector3f im_center = im_pose * center_loc;
+    float d2c = (im_center - f_pose.col(2)).norm();
+    
+    if (occupied_by[cell_y * grid_w + cell_x] < 0) {
+      occupied_by[cell_y * grid_w + cell_x] = f_idx;
+      dist2center[cell_y * grid_w + cell_x] = d2c;
+    } else {
+      int o_idx = occupied_by[cell_y * grid_w + cell_x];
+      if ((m_features.row(o_idx) - m_features.row(f_idx)).norm() < 0.4f &&
+          d2c < dist2center[cell_y * grid_w + cell_x]) {
+        occupied_by[cell_y * grid_w + cell_x] = f_idx;
+        dist2center[cell_y * grid_w + cell_x] = d2c;        
+      }
+    }
+  }
+
+  Eigen::MatrixXf features_shrinked(m_features.rows(), m_features.cols());
+  std::vector<Eigen::Matrix3f> feature_poses_shrinked(m_features.rows());
+  std::vector<int> feature_image_idx_shrinked(m_features.rows());
+  std::vector<float> feature_scales_shrinked(m_features.rows());
+
+  size_t cnt = 0;
+  for (size_t cell_idx = 0; cell_idx < grid_w * grid_h; cell_idx++) {
+    int o_idx = occupied_by[cell_idx];
+    if (o_idx < 0) {
+      continue;
+    }
+    features_shrinked.row(cnt)      = m_features.row(o_idx); 
+    feature_poses_shrinked[cnt]     = m_feature_poses[o_idx];
+    feature_image_idx_shrinked[cnt] = m_feature_image_indices[o_idx];
+    feature_scales_shrinked[cnt]    = m_feature_scales[o_idx];
+    cnt++;
+  }
+  features_shrinked.conservativeResize(cnt, features_shrinked.cols());
+  feature_poses_shrinked.resize(cnt);
+  feature_image_idx_shrinked.resize(cnt);
+  feature_scales_shrinked.resize(cnt);
+
+
+  m_feature_poses = feature_poses_shrinked;
+  m_feature_image_indices = feature_image_idx_shrinked;
+  m_feature_scales = feature_scales_shrinked;
+  m_features = features_shrinked;
+
+  delete[] dist2center;
+  delete[] occupied_by;
 }
 
 
@@ -547,15 +633,360 @@ void Localization::loadFeatures(const char* path) {
     m_feature_poses_x[f_idx] = m_feature_poses[f_idx](0, 2);
     m_feature_poses_y[f_idx] = m_feature_poses[f_idx](1, 2);
   }
-
 }
 
 
-void Localization::locate(MicroGPS::Image* work_image, 
-                          LocalizationOptions* options,
-                          LocalizationResult* results,
-                          LocalizationTiming* timing,
-                          MicroGPS::Image*& alignment_image) 
+// VISUAL WORDS
+
+
+void Localization::loadVisualWords(const char* path) {
+  FILE* fp = fopen(path, "r");
+
+  // read size
+  size_t size[2];
+  fread(size, sizeof(size_t), 2, fp);
+
+  m_visual_words = Eigen::MatrixXf(size[0], size[1]);
+  fread(m_visual_words.data(), sizeof(float), size[0] * size[1], fp);
+
+  // std::cout << m_visual_words << std::endl;
+
+  fclose(fp);
+}
+
+void Localization::buildVisualWordsSearchIndex() {
+  bool index_built = m_flann_visual_words_kdtree != NULL;
+
+  if (index_built) {
+    delete[] m_flann_visual_words_data.ptr();
+  }
+  // Build flann index
+  m_flann_visual_words_data = flann::Matrix<float>(new float[m_visual_words.rows() * m_visual_words.cols()],
+                                                            m_visual_words.rows(),
+                                                            m_visual_words.cols());
+
+  // copy data
+  for (int i = 0; i < m_visual_words.rows(); i++) {
+    for (int j = 0; j < m_visual_words.cols(); j++) {
+      m_flann_visual_words_data[i][j] = m_visual_words(i, j);
+    }
+  }
+  printf("flann data copied\n");
+  // build kd tree
+  if (index_built) {
+    delete m_flann_visual_words_kdtree;
+    m_flann_visual_words_kdtree = NULL;
+  }
+
+  flann::KDTreeIndexParams params;
+  m_flann_visual_words_kdtree = new flann::Index<L2<float> >(m_flann_visual_words_data, params);
+  m_flann_visual_words_kdtree->buildIndex();
+}
+
+void Localization::findNearestVisualWords(flann::Matrix<float>& flann_query,
+                                          std::vector<int>& vw_id) {
+  flann::Matrix<int> flann_index(new int[flann_query.rows], flann_query.rows, 1);
+  flann::Matrix<float> flann_dist(new float[flann_query.rows], flann_query.rows, 1);
+
+  m_flann_visual_words_kdtree->knnSearch(flann_query, flann_index, flann_dist, 1, SearchParams(64));
+
+  vw_id.resize(flann_query.rows);
+
+  for (int i = 0; i < flann_query.rows; i++) {
+    vw_id[i] = flann_index[i][0];
+  }
+
+  delete[] flann_query.ptr();
+  delete[] flann_index.ptr();
+  delete[] flann_dist.ptr();  
+}
+
+void Localization::fillVisualWordCells() {
+  printf("start filling visual word cells\n");
+  flann::Matrix<float> flann_query(new float[m_features.rows() * m_features.cols()],
+                                            m_features.rows(), m_features.cols());
+  
+  for (int i = 0; i < m_features.rows(); i++) {
+    for (int j = 0; j < m_features.cols(); j++) {
+      flann_query[i][j] = m_features(i, j);
+    }
+  }
+
+  std::vector<int> vw_id;
+  findNearestVisualWords(flann_query, vw_id);
+
+  m_feature_vw_id.resize(m_visual_words.rows(), std::vector<int>(0));
+
+  for (size_t f_idx = 0; f_idx < vw_id.size(); f_idx++) {
+    m_feature_vw_id[vw_id[f_idx]].push_back(f_idx);
+  } 
+}
+
+void Localization::saveVisualWordCells(const char* path) {
+  FILE* fp = fopen(path, "w");
+  size_t num_words = m_feature_vw_id.size();
+  fwrite(&num_words, sizeof(size_t), 1, fp);  
+
+  for (size_t i = 0; i < m_feature_vw_id.size(); i++) {
+    size_t num_feat = m_feature_vw_id[i].size();
+    fwrite(&num_feat, sizeof(size_t), 1, fp);
+    if (num_feat > 0) {
+      fwrite((int*)m_feature_vw_id[i].data(), sizeof(int), num_feat, fp);
+    }
+  }
+  fclose(fp);
+}
+
+
+void Localization::loadVisualWordCells(const char* path) {
+  FILE* fp = fopen(path, "r");
+  size_t num_words;
+  fread(&num_words, sizeof(size_t), 1, fp);
+
+  m_feature_vw_id.resize(num_words, std::vector<int>(0));
+
+  for (size_t i = 0; i < num_words; i++) {
+    size_t num_feat;
+    fread(&num_feat, sizeof(size_t), 1, fp);
+    if(num_feat > 0) {
+      m_feature_vw_id[i].resize(num_feat);
+      int* buffer = new int[num_feat];
+      fread(buffer, sizeof(int), num_feat, fp);
+      m_feature_vw_id[i].assign(buffer, buffer + num_feat);
+    }
+  }
+
+  fclose(fp);
+}
+
+
+void Localization::searchNearestNeighborsByVisualWords(MicroGPS::Image* work_image,
+                                                        std::vector<int>& src_idx,
+                                                        std::vector<int>& des_idx) {
+
+  int num_test_features = work_image->getNumLocalFeatures();
+  int num_dimensions = m_visual_words.cols();
+
+  flann::Matrix<float> flann_query(new float[num_test_features * num_dimensions],
+                                            num_test_features, num_dimensions);
+
+  for (int i = 0; i < num_test_features; i++) {
+    LocalFeature* f = work_image->getLocalFeature(i);
+    for (int j = 0; j < num_dimensions; j++) {
+      flann_query[i][j] = f->descriptor[j];
+    }
+  }
+  
+  std::vector<int> vw_id;
+  findNearestVisualWords(flann_query, vw_id);
+
+  // estimate size
+  size_t len = 0;
+  for (size_t i = 0; i < vw_id.size(); i++) {
+    len += m_feature_vw_id[vw_id[i]].size();    
+  }
+
+  src_idx.resize(len);
+  des_idx.resize(len);
+
+  printf("finding nn by matching visual words\n");
+  size_t cnt = 0;
+  for (size_t i = 0; i < vw_id.size(); i++) {
+    for (size_t j = 0; j < m_feature_vw_id[vw_id[i]].size(); j++) {
+      src_idx[cnt] = i;
+      des_idx[cnt] = m_feature_vw_id[vw_id[i]][j];
+      cnt++;
+    }
+  }
+}
+
+
+void Localization::locateUseVW(MicroGPS::Image* work_image, 
+                              LocalizationOptions* options,
+                              LocalizationResult* results,
+                              LocalizationTiming* timing,
+                              MicroGPS::Image*& alignment_image){
+  timing->reset();
+  results->reset();
+
+  util::tic();
+
+  util::tic();
+  if (!work_image->loadPrecomputedFeatures(false)) { // prefer using precomputed features
+    work_image->extractSIFT(options->m_image_scale_for_sift);
+  }
+  timing->m_sift_extraction = (float)util::toc() / 1000.0f;
+  printf("Getting features costs %.02f ms\n", timing->m_sift_extraction);
+
+  // util::tic();
+  // printf("m_PCA_basis: %ld x %ld\n", m_PCA_basis.cols(), m_PCA_basis.rows());
+  // work_image->linearFeatureCompression(m_PCA_basis);
+  // timing->m_dimension_reduction = (float)util::toc() / 1000.0f;
+  // printf("Dimension reduction costs %.02f ms\n", timing->m_dimension_reduction);
+
+  util::tic();
+  std::vector<int> src_index;
+  std::vector<int> des_index;
+  searchNearestNeighborsByVisualWords(work_image, src_index, des_index);
+  timing->m_knn_search = (float)util::toc() / 1000.0f;
+  printf("NN search costs %.02f ms\n", timing->m_knn_search);
+
+  size_t num_candidate_poses = src_index.size();
+  printf("there are %ld candidate poses\n", num_candidate_poses);
+  // compute image pose for each match
+  // T_WItest = T_WIdata * T_IdataFdata * T_FdataFtest * T_FtestItest
+  // T_FdataFtest = I
+
+  util::tic();
+  std::vector<Eigen::Matrix3f> pose_candidates(num_candidate_poses);
+  int num_valid_NN = 0;
+  for (size_t i = 0; i < num_candidate_poses; i++) {
+    // printf("src_index = %d, des_index = %d\n", src_index[i], des_index[i]);
+    LocalFeature* f = work_image->getLocalFeature(src_index[i]);
+    pose_candidates[i] = m_feature_poses[des_index[i]] * f->local_pose.inverse();
+    num_valid_NN++;
+  }
+  timing->m_candidate_image_pose = (float)util::toc() / 1000.0f;
+  printf("Computing candidate poses costs %.02f ms\n", timing->m_candidate_image_pose);
+
+
+  util::tic();
+  std::fill(m_voting_grid.begin(), m_voting_grid.end(), 0); // reset
+  printf("m_grid_width = %d, m_grid_height = %d\n", m_grid_width, m_grid_height);
+  for (size_t i = 0; i < num_candidate_poses; i++) {
+    int cell_x = floor((pose_candidates[i](0, 2) - m_grid_min_x) / m_grid_step);
+    int cell_y = floor((pose_candidates[i](1, 2) - m_grid_min_y) / m_grid_step);
+    // printf("cell_x = %d, cell_y = %d\n", cell_x, cell_y);
+    m_voting_grid[cell_y * m_grid_width + cell_x] += 1;
+  }
+  printf("Finished voting\n");
+
+  //select the peak, figure out inliers
+  int peak_cnt = 0;
+  int peak_x, peak_y;
+  for (int y = 0; y < m_grid_height; y++) {
+    for (int x = 0; x < m_grid_width; x++) {
+      if (m_voting_grid[y * m_grid_width + x] > peak_cnt) {
+        peak_cnt = m_voting_grid[y * m_grid_width + x];
+        peak_x = x;
+        peak_y = y;
+      }
+    }
+  }
+
+  printf("Top 10 voting cells:\n");
+  std::sort(m_voting_grid.begin(), m_voting_grid.end(), std::greater<int>());
+  for (int i = 0; i < 10; i++) {
+    printf("%d ", m_voting_grid[i]);
+  }
+  printf("\n");
+  results->m_top_cells = std::vector<int>(m_voting_grid.begin(), m_voting_grid.begin()+10);
+
+
+  std::vector<int> peak_idx;
+  for (int i = 0; i < num_candidate_poses; i++) {
+    if (floor((pose_candidates[i](0, 2) - m_grid_min_x) / m_grid_step) == peak_x &&
+        floor((pose_candidates[i](1, 2) - m_grid_min_y) / m_grid_step) == peak_y) {
+      peak_idx.push_back(i);
+    }
+  }
+
+  timing->m_voting = (float)util::toc() / 1000.0f;
+  printf("Peak size = %ld. Voting costs %.02f ms in total\n", peak_idx.size(), timing->m_voting);
+
+  if (peak_idx.size() < 2) {
+    printf("locate(): return false because peak_idx.size() < 2\n");
+    return; // pose cannot be determined
+  }
+
+
+  util::tic();
+  Eigen::MatrixXf points1(peak_idx.size(), 2);
+  Eigen::MatrixXf points2(peak_idx.size(), 2);
+
+  printf("Peak features come from following images:\n");
+  for (int i = 0; i < peak_idx.size(); i++) {
+    LocalFeature* f_test = work_image->getLocalFeature(src_index[peak_idx[i]]);
+    points1(i, 0) = f_test->x;
+    points1(i, 1) = f_test->y;
+
+    int f_database_idx = des_index[peak_idx[i]];
+    points2(i, 0) = m_feature_poses[f_database_idx](0, 2);
+    points2(i, 1) = m_feature_poses[f_database_idx](1, 2);
+    // nearest_database_images_idx[i] = m_feature_image_idx[f_database_idx];
+    printf("%d ", m_feature_image_indices[f_database_idx]);
+  }
+  printf("\n");
+
+
+  Eigen::MatrixXf pose_estimated;
+  std::vector<int> ransac_inliers;
+  MicroGPS::ImageFunc::estimateRigidTransformationRANSAC(points1, points2,
+                                                        pose_estimated, ransac_inliers,
+                                                        1000, 5.0f);
+
+  printf("There are %ld inliers after RANSAC\n", ransac_inliers.size());
+
+  if (ransac_inliers.size() < 2) {
+    printf("locate(): return false because ransac_inliers.size() = %ld < 2\n", ransac_inliers.size());
+    return;
+  }
+
+  timing->m_ransac = (float)util::toc() / 1000.0f;
+  printf("RANSAC pose estimation costs %.02f ms\n", timing->m_ransac);
+
+  results->m_final_estimated_pose = pose_estimated;
+  results->m_can_estimate_pose = true;
+
+  timing->m_total = (float)util::toc() / 1000.0f;
+  printf("Localization costs %.02f ms in total\n", timing->m_total);
+
+
+  if (options->m_save_debug_info) {
+    results->m_cell_size = m_grid_step;
+    results->m_peak_topleft_x = peak_x * m_grid_step + m_grid_min_x;
+    results->m_peak_topleft_y = peak_y * m_grid_step + m_grid_min_y;
+
+    results->m_matched_feature_poses.resize(num_valid_NN);
+    results->m_candidate_image_poses.resize(num_valid_NN);
+    results->m_test_feature_poses.resize(num_valid_NN);
+
+    int f_idx = 0;
+    for (size_t i = 0; i < num_candidate_poses; i++) {
+      LocalFeature* f = work_image->getLocalFeature(src_index[i]);
+      results->m_matched_feature_poses[f_idx] = m_feature_poses[des_index[i]];
+      results->m_candidate_image_poses[f_idx] = m_feature_poses[des_index[i]] * f->local_pose.inverse();
+      results->m_test_feature_poses[f_idx] = f->local_pose;
+      f_idx++;
+      // printf("i = %d / %d\n", i, num_candidate_poses);
+    }
+  }
+  
+
+  if (!options->m_do_siftmatch_verification) {
+    results->m_success_flag = true; // we assume success if no verification
+    if (!options->m_generate_alignment_image) {
+      return;
+    }
+  }
+
+  verifyAndGenerateAlignmentImage(work_image, 
+                                  pose_estimated,
+                                  options,
+                                  results,
+                                  timing,
+                                  alignment_image);
+
+  printf("finished localization using vw\n");
+}
+
+
+
+void Localization::locateGlobalNN(MicroGPS::Image* work_image, 
+                                  LocalizationOptions* options,
+                                  LocalizationResult* results,
+                                  LocalizationTiming* timing,
+                                  MicroGPS::Image*& alignment_image) 
 {
   timing->reset();
   results->reset();
@@ -734,6 +1165,41 @@ void Localization::locate(MicroGPS::Image* work_image,
     }
   }
 
+  verifyAndGenerateAlignmentImage(work_image, 
+                                  pose_estimated,
+                                  options,
+                                  results,
+                                  timing,
+                                  alignment_image);
+}
+
+void Localization::locate(MicroGPS::Image* work_image, 
+                          LocalizationOptions* options,
+                          LocalizationResult* results,
+                          LocalizationTiming* timing,
+                          MicroGPS::Image*& alignment_image) {
+
+  if(options->m_use_visual_words) {
+    locateUseVW(work_image, 
+                options,
+                results,
+                timing,
+                alignment_image);
+  } else {
+    locateGlobalNN(work_image, 
+                  options,
+                  results,
+                  timing,
+                  alignment_image);
+  }
+
+
+}
+
+
+int Localization::getClosestDatabaseImage (Eigen::Matrix3f pose_estimated,
+                                           size_t im_width,
+                                           size_t im_height) {
   // allocate memory for inpolygon
   float   rect_verts_x[4];
   float   rect_verts_y[4];
@@ -744,8 +1210,8 @@ void Localization::locate(MicroGPS::Image* work_image,
   // compute test image vertices
   float lx = 0;
   float ly = 0;
-  float ux = work_image->width()-1;
-  float uy = work_image->height()-1;
+  float ux = (float)im_width-1;
+  float uy = (float)im_height-1;
 
   Eigen::MatrixXf corners(2, 4);
   corners(0, 0) = lx; corners(0, 1) = lx; corners(0, 2) = ux; corners(0, 3) = ux;
@@ -790,6 +1256,116 @@ void Localization::locate(MicroGPS::Image* work_image,
   }
   printf("max_relevance = %d\n", max_relevance);
 
+  return closest_database_image_idx;
+}
+
+
+bool separate_axis_test_one_poly(const Eigen::MatrixXf& poly1, const Eigen::MatrixXf& poly2) {  
+  bool found_sa = false;
+  
+  for (int edge_idx = 0; edge_idx < poly1.rows()-1; edge_idx++) {
+    float axis_x =  - (poly1(edge_idx+1, 1) - poly1(edge_idx, 1));
+    float axis_y = poly1(edge_idx+1, 0) - poly1(edge_idx, 0);
+
+    Eigen::VectorXf poly1_proj = poly1.col(0) * axis_x + poly1.col(1) * axis_y;
+    Eigen::VectorXf poly2_proj = poly2.col(0) * axis_x + poly2.col(1) * axis_y;
+
+    if (poly2_proj.minCoeff() >= poly1_proj.maxCoeff() ||
+        poly2_proj.maxCoeff() <= poly1_proj.minCoeff()) {
+      found_sa = true;
+    }
+  }
+  return found_sa;
+}
+
+bool separate_axis_test(const Eigen::MatrixXf& poly1, const Eigen::MatrixXf& poly2) {
+  // return true if collision happens
+  return !separate_axis_test_one_poly(poly1, poly2) && !separate_axis_test_one_poly(poly2, poly1);
+}
+
+bool images_overlap(const Eigen::Matrix3f& pose_i, const Eigen::Matrix3f& pose_j,
+                    size_t im_width, size_t im_height) {
+  Eigen::MatrixXf rect(2, 5);
+  rect << 0,  (float)im_width-1,  (float)im_width-1,   0,                   0,
+          0,  0,                  (float)im_height-1,  (float)im_height-1,  0;
+  
+  Eigen::MatrixXf rect_i = pose_i.block(0, 0, 2, 2) * rect;
+  rect_i.row(0) = rect_i.row(0).array() + pose_i(0, 2);
+  rect_i.row(1) = rect_i.row(1).array() + pose_i(1, 2);
+
+  Eigen::MatrixXf rect_j = pose_j.block(0, 0, 2, 2) * rect;
+  rect_j.row(0) = rect_j.row(0).array() + pose_j(0, 2);
+  rect_j.row(1) = rect_j.row(1).array() + pose_j(1, 2);
+
+  return separate_axis_test(rect_i.transpose(), rect_j.transpose());
+}
+
+float compute_overlap_percentage(const Eigen::Matrix3f& pose_i, 
+                                 const Eigen::Matrix3f& pose_j,
+                                 size_t im_width,
+                                 size_t im_height,
+                                 size_t step = 10) {
+
+  Eigen::Matrix3f pose_ji = pose_j.inverse() * pose_i;
+
+  size_t cnt = 0;
+  for (size_t y = 0; y < im_height; y = y + 10) {
+    for (size_t x = 0; x < im_width; x = x + 10) {
+      Eigen::MatrixXf pt = pose_ji.col(0) * (float)x + 
+                           pose_ji.col(1) * (float)y + 
+                           pose_ji.col(2);
+      
+      if (pt(0) > 0 && pt(0) < (float)im_width-1.0 && 
+          pt(1) > 0 && pt(1) < (float)im_height-1.0) {
+        cnt++;
+      }
+    }
+  }
+
+  return (float)cnt / (float)((im_width / step) * (im_height / step));  
+}
+
+int Localization::getClosestDatabaseImage2 (Eigen::Matrix3f pose_estimated,
+                                            size_t im_width,
+                                            size_t im_height) {
+
+  float max_overlap = 0;
+  int max_overlap_idx = -1;
+  for (size_t im_idx = 0; im_idx < m_image_dataset->getDatabaseSize(); im_idx++) {    
+    if (images_overlap(m_image_dataset->getDatabaseImagePose(im_idx), 
+                       pose_estimated,
+                       im_width,
+                       im_height)) { // check if overlap
+      // printf("checking im_idx = %ld\n", im_idx);      
+      float overlap_percentage = 
+            compute_overlap_percentage(m_image_dataset->getDatabaseImagePose(im_idx),
+                                       pose_estimated,
+                                       im_width, 
+                                       im_height); // compute how much overlap
+
+      if (overlap_percentage > max_overlap) {
+        max_overlap = overlap_percentage;
+        max_overlap_idx = (int)im_idx;
+      }
+    }
+  }
+
+  return max_overlap_idx;
+}
+
+
+void Localization::verifyAndGenerateAlignmentImage (MicroGPS::Image* work_image, 
+                                                    Eigen::Matrix3f pose_estimated,
+                                                    LocalizationOptions* options,
+                                                    LocalizationResult* results,
+                                                    LocalizationTiming* timing,
+                                                    MicroGPS::Image*& alignment_image) {
+
+
+  int closest_database_image_idx = getClosestDatabaseImage2(pose_estimated,
+                                                           work_image->width(),
+                                                           work_image->height());
+
   if (options->m_save_debug_info) {
     results->m_closest_database_image_idx = closest_database_image_idx;
   }
@@ -812,6 +1388,9 @@ void Localization::locate(MicroGPS::Image* work_image,
     if (!closest_database_image->loadPrecomputedFeatures(true)) { // use sift for verification
       closest_database_image->extractSIFT(options->m_image_scale_for_sift);
     }
+
+    // work_image->extractSIFT(1.0);
+    // closest_database_image->extractSIFT(1.0);
 
     MicroGPS::ImageFunc::matchFeatureBidirectional(work_image, closest_database_image,
                                                   matched_idx1, matched_idx2, false);
@@ -860,9 +1439,16 @@ void Localization::locate(MicroGPS::Image* work_image,
   }
 
   closest_database_image->release();
-
-
 }
+
+
+
+
+
+
+
+
+
 
 
 }
