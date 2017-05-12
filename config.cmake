@@ -5,7 +5,7 @@
 message( STATUS "Building for:  " ${CMAKE_SYSTEM} "  FlyCapture not available")
 option(ON_MAC "Option description" ON)
 add_definitions(-DON_MAC)
-add_definitions(-GFLAGS_NAMESPACE=gflags)
+add_definitions(-DGFLAGS_NAMESPACE=gflags)
 
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -mmacosx-version-min=10.9 -framework OpenGL -framework Cocoa")
