@@ -234,6 +234,8 @@ void commandLineBatchTest() {
     char test_report_path[256];
     sprintf(test_report_path, "%s/frame%06d.txt", test_report_folder, test_index);
 
+    printf("test_report_path = %s\n", test_report_path);
+
     FILE* fp = fopen(test_report_path, "w");
     g_localizer_timing.printToFile(fp);
     g_localizer_result.printToFile(fp);
