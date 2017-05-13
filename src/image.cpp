@@ -560,10 +560,10 @@ cv::Mat Image::convertToCvMat() const{
 
   int cv_mat_type;
   switch (m_channels) {
-    case 0:
+    case 1:
       cv_mat_type = CV_8UC1;
       break;
-    case 1:
+    case 2:
       cv_mat_type = CV_8UC2;
       break;
     case 3:

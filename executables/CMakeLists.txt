@@ -12,6 +12,7 @@ if(ON_MAC)
   # add_executable(test_image_basics ${GUI_SRCS})
   add_executable(micro_gps_exec micro_gps_exec.cpp)
   add_executable(batch_extract_sift batch_extract_sift.cpp)
+  add_executable(batch_crop_sift_patches batch_crop_sift_patches.cpp)
   add_executable(micro_gps_gui micro_gps_gui.cpp
                                gui_helper.cpp)
 
@@ -20,6 +21,10 @@ if(ON_MAC)
                         gflags)
 
   target_link_libraries(batch_extract_sift
+                        mgps
+                        gflags)
+
+  target_link_libraries(batch_crop_sift_patches
                         mgps
                         gflags)
 
