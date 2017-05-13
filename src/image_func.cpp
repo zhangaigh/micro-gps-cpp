@@ -16,10 +16,10 @@ Image* cropPatch(const Image* im,
 
   // rotated x-axis
   float x_axis_x = cos(orientation);
-  float x_axis_y = -sin(orientation);
+  float x_axis_y = sin(orientation);
 
   // rotated y-axis
-  float y_axis_x = sin(orientation);
+  float y_axis_x = -sin(orientation);
   float y_axis_y = cos(orientation);
 
   // [-half_w + 0.5, half_w - 0.5]
