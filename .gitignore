@@ -1,7 +1,7 @@
+config.cmake
 build/
 bin*
 .DS_Store
-config.cmake
 .*.m
 # scripts
 
