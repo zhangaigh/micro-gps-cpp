@@ -216,7 +216,7 @@ void commandLineBatchTest() {
 
     current_test_frame->loadImage();
 
-    MicroGPS::Image* alignment_image;
+    MicroGPS::Image* alignment_image = NULL;
     g_localizer_timing.reset();
     g_localizer_result.reset();
 
@@ -229,7 +229,9 @@ void commandLineBatchTest() {
     current_test_frame->release();
 
     delete current_test_frame;
-    delete alignment_image;
+    if (alignment_image) {
+      delete alignment_image;
+    }
 
     char test_report_path[256];
     printf("test_report_path = %s\n", test_report_path);
