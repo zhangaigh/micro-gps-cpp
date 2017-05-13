@@ -1,5 +1,6 @@
 # set(CMAKE_CXX_COMPILER clang-omp++)
 # set(CMAKE_C_COMPILER clang-omp)
+#change something
 
 
 message( STATUS "Building for:  " ${CMAKE_SYSTEM} "  FlyCapture not available")
