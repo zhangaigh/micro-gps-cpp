@@ -60,10 +60,14 @@ i = i + 1;
 file_content = [];
 file_content = [file_content, '#!/bin/bash\n'];
 
-dimensionality_array = [8 16 128];
-visual_words_array = {'fine_asphalt_vw.bin', ...
-                      'carpet_vw.bin', ...
-                      'tiles_vw.bin'};
+% dimensionality_array = [8 16 128];
+dimensionality_array = [128];
+
+% visual_words_array = {'fine_asphalt_vw.bin', ...
+%                       'carpet_vw.bin', ...
+%                       'tiles_vw.bin'};
+
+visual_words_array = {'vocab_all.bin'};
 
 x_thresh = 30;
 y_thresh = 30;
