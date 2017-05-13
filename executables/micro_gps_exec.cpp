@@ -232,9 +232,10 @@ void commandLineBatchTest() {
     delete alignment_image;
 
     char test_report_path[256];
+    printf("test_report_path = %s\n", test_report_path);
+
     sprintf(test_report_path, "%s/frame%06d.txt", test_report_folder, test_index);
 
-    printf("test_report_path = %s\n", test_report_path);
 
     FILE* fp = fopen(test_report_path, "w");
     g_localizer_timing.printToFile(fp);
