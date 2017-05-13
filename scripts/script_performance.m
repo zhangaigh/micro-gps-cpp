@@ -55,23 +55,28 @@ dataset_info(i).test_sequences = {'sequence0000.test'};
 dataset_info(i).db_sample_size = 50;
 i = i + 1;
 
-if ismac
-  fid = fopen('../bin_mac/script_performance.sh', 'w');
-else
-  fid = fopen('../bin/script_performance.sh', 'w');
-end
-fprintf(fid, '#!/bin/bash\n');
 
+
+file_content = [];
+file_content = [file_content, '#!/bin/bash\n'];
 
 dimensionality_array = [8 16];
 
+x_thresh = 30;
+y_thresh = 30;
+angle_thresh = 1.5;
 
 for dimensionality_idx = 1 : length(dimensionality_array)
   dimensionality = dimensionality_array(dimensionality_idx);
 
+  fprintf('dimensionality = %d\n', dimensionality);
+
   for ds_idx = 1 : length(dataset_info)
     curr_dataset_info = dataset_info(ds_idx);
     dataset_name = curr_dataset_info.dataset;
+    fprintf('%s\n', dataset_name);
+
+    success_flag_cat = [];
 
     if ~isfield(curr_dataset_info, 'db_sample_size') || isempty(curr_dataset_info.db_sample_size)
       db_sample_size = 50;
@@ -79,12 +84,12 @@ for dimensionality_idx = 1 : length(dimensionality_array)
       db_sample_size = curr_dataset_info.db_sample_size;
     end
 
-    feature_database_name = sprintf('%s-siftgpu.bin', dataset_name);
-    pca_basis_name = sprintf('pca_%s-siftgpu.bin', dataset_name);
+    feature_database_name = sprintf('%s-db%d-siftgpu.bin', dataset_name, db_sample_size);
+    pca_basis_name = sprintf('pca_%s', feature_database_name);
 
     for ts_idx = 1 : length(curr_dataset_info.test_sequences)
       testset_name = curr_dataset_info.test_sequences{ts_idx};
-      output_folder = sprintf('output-performance-%s-%s-db-%d-dim%d', dataset_name, testset_name, db_sample_size, dimensionality);
+      output_folder = sprintf('output-performance-%s-%s-db%d-dim%d', dataset_name, testset_name, db_sample_size, dimensionality);
 
 % DEFINE_string (dataset_root,      "/Users/lgzhang/Documents/DATA/micro_gps_packed",   "dataset_root");
 % DEFINE_string (dataset,           "fc_hallway_long_packed",                           "dataset to use");
@@ -122,17 +127,54 @@ for dimensionality_idx = 1 : length(dimensionality_array)
       cmd = [cmd, ' ', sprintf('--db_sample_size %d',   db_sample_size)];
       cmd = [cmd, ' ', sprintf('--feat_suffix %s',      'sift')];
       
+      file_content = [file_content, cmd, '\n'];
 
-      fprintf(fid, sprintf('%s\n', cmd));
+      output_folder_path = fullfile('../bin/test_results', output_folder);
+      if exist(output_folder_path, 'file')
+        file_list = get_file_list(output_folder_path, 'frame*.txt', 0);
 
+        testing_time =    zeros(1, length(file_list));
+        success_flag =    zeros(1, length(file_list));
+        sift_time =       zeros(1, length(file_list), 1);
+        nn_search_time =  zeros(1, length(file_list));
+        x_y_angle_error = zeros(3, length(file_list));
+        verified_poses =  zeros(3, 3, length(file_list));
+
+        for i = 1 : length(file_list)
+          [timing, result, debug_info] = parse_test_report(file_list{i});
+          testing_time(i) = timing.total;
+          sift_time(i) = timing.feature_extraction;
+          nn_search_time(i) = timing.nn_search;
+          success_flag(i) = result.success;
+          x_y_angle_error(:, i) = result.x_y_angle_error;
+          verified_poses(:, :, i) = result.verified_pose;
+        end
+
+        x_y_angle_error = abs(x_y_angle_error);
+        success_flag = x_y_angle_error(1, :) < x_thresh & x_y_angle_error(2, :) < y_thresh & x_y_angle_error(3, :) < angle_thresh & success_flag > 0;
+        % fprintf('success rate = %d / %d = %f%% \n', sum(success_flag), length(success_flag), sum(success_flag) / length(success_flag) * 100);
+        success_flag_cat = [success_flag_cat success_flag];
+
+      end
     end
 
+    fprintf('final success rate = %d / %d = %f%% \n\n', sum(success_flag_cat), length(success_flag_cat), sum(success_flag_cat) / length(success_flag_cat) * 100);
+ 
   end
 
 end
 
 
-fclose(fid);
+if 0
+  if ismac
+    fid = fopen('../bin_mac/script_performance2.sh', 'w');
+  else
+    fid = fopen('../bin/script_performance2.sh', 'w');
+  end
 
+  fprintf(fid, file_content);
+
+  fclose(fid);
+end
 
   

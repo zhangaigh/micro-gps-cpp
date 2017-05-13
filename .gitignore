@@ -2,6 +2,7 @@ build/
 bin*
 .DS_Store
 config.cmake
+.*.m
 # scripts
 
 # Compiled Object files
