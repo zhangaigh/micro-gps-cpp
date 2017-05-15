@@ -41,6 +41,7 @@ elseif(ON_TEGRA)
 elseif(ON_VISIONGPU1)
   add_executable(micro_gps_exec micro_gps_exec.cpp)
   add_executable(batch_extract_sift batch_extract_sift.cpp)
+  add_executable(batch_crop_sift_patches batch_crop_sift_patches.cpp)
 
   target_link_libraries(micro_gps_exec
                         mgps
@@ -49,6 +50,11 @@ elseif(ON_VISIONGPU1)
   target_link_libraries(batch_extract_sift
                         mgps
                         gflags)
+
+  target_link_libraries(batch_crop_sift_patches
+                        mgps
+                        gflags)
+
 
   # add_executable(batch_extract_sift batch_extract_sift.cpp)
   # target_link_libraries(batch_extract_sift
