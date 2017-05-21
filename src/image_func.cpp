@@ -288,19 +288,25 @@ void computeImageArrayWorldLimits(std::vector<Image*>& images,
                                   int& world_min_x,
                                   int& world_min_y,
                                   int& world_max_x,
-                                  int& world_max_y) {
+                                  int& world_max_y,
+                                  bool dynamic_size) {
   int n_images = (int)poses.size();
 
-  images[0]->loadImage();
-  images[0]->resize(warp_scale);
-  int im_width = images[0]->width();
-  int im_height = images[0]->height();
-  images[0]->release();
+  int im_width;
+  int im_height;
+  
+  if (!dynamic_size) { // load image once to get dimension
+    images[0]->loadImage();
+    images[0]->resize(warp_scale);
+    im_width = images[0]->width();
+    im_height = images[0]->height();
+    images[0]->release();
+  }
 
   float lx = 0;
-  float ux = (float)(im_width-1);
+  float ux;
   float ly = 0;
-  float uy = (float)(im_height-1);
+  float uy;
 
   Eigen::MatrixXf all_corners(2, n_images * 4);
   for (int i = 0; i < n_images; i++) {
@@ -308,6 +314,17 @@ void computeImageArrayWorldLimits(std::vector<Image*>& images,
 
     // resize pose as well
     poses[i].block(0, 2, 2, 1) *= warp_scale;
+
+    if (dynamic_size) {
+      images[i]->loadImage();
+      images[i]->resize(warp_scale);
+      im_width = images[i]->width();
+      im_height = images[i]->height();
+      images[i]->release();
+    }
+
+    ux = (float)(im_width-1);
+    uy = (float)(im_height-1);
 
     // transform four corners
     Eigen::MatrixXf corners(2, 4);
@@ -426,7 +443,8 @@ void computeWarpImageMapping(int im_width, int im_height,
 // warp an image array to generate a map
 Image* warpImageArray(std::vector<Image*>& images,
                       std::vector<Eigen::Matrix3f>& poses,
-                      float warp_scale) {
+                      float warp_scale,
+                      bool dynamic_size) {
   
   int n_images = (int)poses.size();
 
@@ -444,14 +462,21 @@ Image* warpImageArray(std::vector<Image*>& images,
 
   computeImageArrayWorldLimits(images, poses, warp_scale,
                                world_min_x, world_min_y,
-                               world_max_x, world_max_y);
+                               world_max_x, world_max_y,
+                               dynamic_size);
 
-  images[0]->loadImage();
-  images[0]->resize(warp_scale);
-  size_t im_width    = images[0]->width();
-  size_t im_height   = images[0]->height();
-  size_t im_channels = images[0]->channels();
-  images[0]->release();
+  size_t im_width;    
+  size_t im_height;
+  size_t im_channels;
+
+  if (!dynamic_size) {
+    images[0]->loadImage();
+    images[0]->resize(warp_scale);
+    im_width    = images[0]->width();
+    im_height   = images[0]->height();
+    im_channels = images[0]->channels();
+    images[0]->release();
+  }
 
   int world_width = world_max_x - world_min_x + 1;
   int world_height = world_max_y - world_min_y + 1;
@@ -471,6 +496,13 @@ Image* warpImageArray(std::vector<Image*>& images,
     std::vector<Eigen::Vector2f> world_location;
     std::vector<Eigen::Vector2f> im_location;
 
+
+    images[im_idx]->loadImage();
+    images[im_idx]->resize(warp_scale);
+
+    im_width  = images[im_idx]->width();
+    im_height = images[im_idx]->height();
+
     computeWarpImageMapping(im_width, im_height,
                             world_min_x, world_min_y,
                             world_max_x, world_max_y,
@@ -478,9 +510,6 @@ Image* warpImageArray(std::vector<Image*>& images,
                             world_location,
                             im_location);
 
-
-    images[im_idx]->loadImage();
-    images[im_idx]->resize(warp_scale);
 
     uchar* im_data = images[im_idx]->data();
 

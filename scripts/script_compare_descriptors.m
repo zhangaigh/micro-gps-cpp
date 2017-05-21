@@ -1,6 +1,9 @@
 clear
 addpath(genpath('/Users/lgzhang/Dropbox/Research/third_party_libs/export_fig'))
 
+show_result = 1;
+generate_sh = 0;
+
 if ismac
   micro_gps_data_root = '/Users/lgzhang/Documents/DATA/micro_gps_packed';
 else
@@ -58,9 +61,9 @@ file_content = [];
 file_content = [file_content, '#!/bin/bash\n'];
 
 dimensionality_array = [2 4 8 16 32 64 128];
-feature_type_array = {'sift2', 'deep', 'surf'};
-% feature_type_array = {'surf'};
-feature_type_official_name_array = {'SIFT', 'DeepDesc', 'SURF'};
+feature_type_array = {'sift2', 'deep', 'deep_original', 'surf'};
+% feature_type_array = {'deep_original'};
+feature_type_official_name_array = {'SIFT', 'DeepDesc', 'DeepDesc Natural', 'SURF'};
 
 x_thresh = 30;
 y_thresh = 30;
@@ -133,10 +136,9 @@ for dimensionality_idx = 1 : length(dimensionality_array)
         cmd = [cmd, ' ', sprintf('--db_sample_size %d',   db_sample_size)];
         cmd = [cmd, ' ', sprintf('--feat_suffix %s',      feature_suffix)];
         
-        file_content = [file_content, cmd, '\n'];
 
         output_folder_path = fullfile('../bin/test_results', output_folder);
-        if exist(output_folder_path, 'file')
+        if exist(output_folder_path, 'file') && show_result
           file_list = get_file_list(output_folder_path, 'frame*.txt', 0);
 
           testing_time =    zeros(1, length(file_list));
@@ -161,7 +163,11 @@ for dimensionality_idx = 1 : length(dimensionality_array)
           % fprintf('success rate = %d / %d = %f%% \n', sum(success_flag), length(success_flag), sum(success_flag) / length(success_flag) * 100);
           success_flag_cat = [success_flag_cat success_flag];
 
+        elseif ~exist(output_folder_path, 'file')
+          file_content = [file_content, cmd, '\n'];
         end
+
+
       end
       
       success_rate = sum(success_flag_cat) / length(success_flag_cat) * 100;
@@ -173,7 +179,7 @@ for dimensionality_idx = 1 : length(dimensionality_array)
 end
 
 
-if 0
+if generate_sh
   if ismac
     fid = fopen('../bin_mac/script_compare_descriptors.sh', 'w');
   else
@@ -185,31 +191,33 @@ if 0
   fclose(fid);
 end
 
-
-for ds_idx = 1 : length(dataset_info)
-  legend_strs = {};
-  figure
-  hold on
-  for i = 1 : size(success_rate_matrix, 1)
-    plot(success_rate_matrix(i, :, ds_idx), '--s','LineWidth',2,...
-                              'MarkerSize',10,...
-                              'MarkerEdgeColor','b');
-
-    str = feature_type_official_name_array{i};
-    legend_strs = [legend_strs str];
-  end
-  grid on
-  box on
-  h_legend = legend(legend_strs);
-  set(h_legend, 'Position', [0.64 0.13 0.25 0.15]);
-  set(gca, 'FontSize', 20);
-  ax = gca;
-  ax.XTick = 1 : length(dimensionality_array);
-  ax.XTickLabel = dimensionality_array;
-  xlabel('descriptor dimensionality');
-  ylabel('success rate (%)');
-
-  savefig(['compare_descriptors-' dataset_info(ds_idx).dataset '.fig'])
-  export_fig(['compare_descriptors-' dataset_info(ds_idx).dataset '.pdf'], '-transparent');
-end
+if 1
+  close all
+  line_styles = {'--s', '-o', '-.*', ':d'};
   
+  for ds_idx = 1 : length(dataset_info)
+    legend_strs = {};
+    figure
+    hold on
+    for i = 1 : size(success_rate_matrix, 1)
+      plot(success_rate_matrix(i, :, ds_idx), line_styles{i},'LineWidth',2,...
+                                'MarkerSize',10);
+
+      str = feature_type_official_name_array{i};
+      legend_strs = [legend_strs str];
+    end
+    grid on
+    box on
+    h_legend = legend(legend_strs);
+    set(gca, 'FontSize', 20);
+    set(h_legend, 'Position', [0.185 0.74 0.25 0.15]);
+    ax = gca;
+    ax.XTick = 1 : length(dimensionality_array);
+    ax.XTickLabel = dimensionality_array;
+    xlabel('descriptor dimensionality');
+    ylabel('success rate (%)');
+
+    savefig(['compare_descriptors-' dataset_info(ds_idx).dataset '.fig'])
+    export_fig(['compare_descriptors-' dataset_info(ds_idx).dataset '.pdf'], '-transparent');
+  end
+end  
