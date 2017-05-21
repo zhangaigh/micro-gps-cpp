@@ -100,6 +100,9 @@ bool                      g_draw_camera = true;
 float                     g_world_min_x = 0.0f;
 float                     g_world_min_y = 0.0f;
 
+bool                      g_noshow_failed;
+bool                      g_show_traj;
+std::vector<Eigen::Matrix3f> g_pose_history(0);
 
 DEFINE_bool   (batch_test,        false,                                              "do batch test");
 DEFINE_string (dataset_root,      "/Users/lgzhang/Documents/DATA/micro_gps_packed",   "dataset_root");
@@ -120,6 +123,8 @@ DEFINE_bool   (nogui,             false,                                        
 // offline
 DEFINE_int32  (db_sample_size,    50,                                                 "number of features sampled from each database image");
 DEFINE_string (feat_suffix,       "sift",                                             "default suffix for precomputed feature");
+DEFINE_bool   (noshow_failed,     false,                                              "disable showing failed cases");
+DEFINE_bool   (show_traj,         false,                                              "show trajectory");
 
 
 void LoadVariablesFromCommandLine() {
@@ -137,6 +142,9 @@ void LoadVariablesFromCommandLine() {
   g_dimensionality                      = FLAGS_feat_dim;
   g_database_sample_size                = FLAGS_db_sample_size;
   g_sift_extraction_scale               = FLAGS_sift_ext_scale;
+
+  g_noshow_failed                       = FLAGS_noshow_failed;
+  g_show_traj                           = FLAGS_show_traj;
 
   printf("g_dataset_name=%s\n", g_dataset_name);
 }
@@ -351,7 +359,25 @@ void EventTestCurrentFrame() {
 
   delete current_test_frame;
 
-  if (alignment_image) {
+  if (g_localizer_result.m_success_flag) {
+    if (g_pose_history.size() == 0 || g_show_traj) {
+      if (g_pose_history.size() > 0) {
+        std::cout << "g_pose_history.back().col(2) = " << g_pose_history.back().col(2) << std::endl;
+        if ((g_pose_history.back().col(2) - g_localizer_result.m_final_estimated_pose.col(2)).norm() > 200.0f) {
+          g_pose_history.push_back(g_localizer_result.m_final_estimated_pose);
+        }
+      } else {
+        g_pose_history.push_back(g_localizer_result.m_final_estimated_pose);
+      }
+
+
+    } else {
+      g_pose_history[0] = g_localizer_result.m_final_estimated_pose;
+    }
+  }
+
+
+  if (alignment_image && (!g_noshow_failed || g_localizer_result.m_success_flag)) {
     g_alignment_texture.loadTextureFromImage(alignment_image);
     delete alignment_image;
   } else {
@@ -810,7 +836,7 @@ void drawMapViewer() {
   g_map_texture_avail_width = im_disp_region.x;
   g_map_texture_avail_height = im_disp_region.y;;
 
-  static int overlay_transparency = 128;
+  static int overlay_transparency = 70;
   static int overlay_idx = 1;
 
   // display the image
@@ -860,61 +886,67 @@ void drawMapViewer() {
     }
 
     // draw estimated location / orientation
-    if (g_localizer_result.m_can_estimate_pose) {
+    if ((g_localizer_result.m_can_estimate_pose && (!g_noshow_failed || g_localizer_result.m_success_flag)) || g_show_traj) {
       float center_x, center_y;
       float x_axis_x, x_axis_y;
       float y_axis_x, y_axis_y;
-      
-      center_x = g_localizer_result.m_final_estimated_pose(0, 2);
-      center_y = g_localizer_result.m_final_estimated_pose(1, 2);
-      globalCoordinates2TextureCoordinates(center_x, center_y);
 
-      if (g_map_texture.rotated90) {
-        float tmp = center_x;
-        center_x = g_map_texture_display_w - center_y;
-        center_y = tmp;
-        x_axis_y = g_localizer_result.m_final_estimated_pose(0, 0);
-        x_axis_x = -g_localizer_result.m_final_estimated_pose(1, 0);
-        y_axis_y = g_localizer_result.m_final_estimated_pose(0, 1);
-        y_axis_x = -g_localizer_result.m_final_estimated_pose(1, 1);        
-      } else {
-        x_axis_x = g_localizer_result.m_final_estimated_pose(0, 0);
-        x_axis_y = g_localizer_result.m_final_estimated_pose(1, 0);
-        y_axis_x = g_localizer_result.m_final_estimated_pose(0, 1);
-        y_axis_y = g_localizer_result.m_final_estimated_pose(1, 1);
-      }
+      for (size_t pose_idx = 0; pose_idx < g_pose_history.size(); pose_idx++) {
+        Eigen::Matrix3f curr_pose = g_pose_history[pose_idx];
+        
+        center_x = curr_pose(0, 2);
+        center_y = curr_pose(1, 2);
+        globalCoordinates2TextureCoordinates(center_x, center_y);
 
-      center_x += tex_screen_pos.x;
-      center_y += tex_screen_pos.y;
-
-      if (g_draw_camera) {
-        ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
-                                            ImVec2(center_x + x_axis_x*20, center_y + x_axis_y*20),
-                                            ImColor(0,0,255,255), 4.0f);
-        ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
-                                            ImVec2(center_x + y_axis_x*20, center_y + y_axis_y*20),
-                                            ImColor(255,0,0,255), 4.0f);
-
-        ImColor circle_color;
-        if (g_localizer_result.m_success_flag) {
-          circle_color = ImColor(0, 255, 0, 255);
+        if (g_map_texture.rotated90) {
+          float tmp = center_x;
+          center_x = g_map_texture_display_w - center_y;
+          center_y = tmp;
+          x_axis_y = curr_pose(0, 0);
+          x_axis_x = -curr_pose(1, 0);
+          y_axis_y = curr_pose(0, 1);
+          y_axis_x = -curr_pose(1, 1);        
         } else {
-          circle_color = ImColor(255, 0, 0, 255);          
+          x_axis_x = curr_pose(0, 0);
+          x_axis_y = curr_pose(1, 0);
+          y_axis_x = curr_pose(0, 1);
+          y_axis_y = curr_pose(1, 1);
         }
-        ImGui::GetWindowDrawList()->AddCircle(ImVec2(center_x, center_y), 20, 
-                                              circle_color, 24, 4.0f);
 
-        // float frame_width = globalLength2TextureLength(1288);
-        // float frame_height = globalLength2TextureLength(964);
-        // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + x_axis_x*frame_width, center_y + x_axis_y*frame_width),
-        //                                       ImColor(255,0,0,255), 2.0f);
-        // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + y_axis_x*frame_height, center_y + y_axis_y*frame_height),
-        //                                       ImColor(0,0,255,255), 2.0f);
-        // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x + x_axis_x*frame_width + y_axis_x*frame_height, center_y + y_axis_y*frame_height + x_axis_y*frame_width), ImVec2(center_x + x_axis_x*frame_width, center_y + x_axis_y*frame_width),
-        //                                       ImColor(255,0,0,255), 2.0f);
-        // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x + x_axis_x*frame_width + y_axis_x*frame_height, center_y + y_axis_y*frame_height + x_axis_y*frame_width), ImVec2(center_x + y_axis_x*frame_height, center_y + y_axis_y*frame_height),
-        //                                       ImColor(0,0,255,255), 2.0f);
+        center_x += tex_screen_pos.x;
+        center_y += tex_screen_pos.y;
 
+        if (g_draw_camera) {
+          float thickness = 2.0f;
+          float radius = 10.0f;
+          ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
+                                              ImVec2(center_x + x_axis_x*radius, center_y + x_axis_y*radius),
+                                              ImColor(0,0,255,255), thickness);
+          ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
+                                              ImVec2(center_x + y_axis_x*radius, center_y + y_axis_y*radius),
+                                              ImColor(255,0,0,255), thickness);
+
+          ImColor circle_color;
+          if (g_localizer_result.m_success_flag || g_show_traj) {
+            circle_color = ImColor(0, 255, 0, 255);
+          } else {
+            circle_color = ImColor(255, 0, 0, 255);          
+          }
+          ImGui::GetWindowDrawList()->AddCircle(ImVec2(center_x, center_y), radius, 
+                                                circle_color, 24, thickness);
+
+          // float frame_width = globalLength2TextureLength(1288);
+          // float frame_height = globalLength2TextureLength(964);
+          // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + x_axis_x*frame_width, center_y + x_axis_y*frame_width),
+          //                                       ImColor(255,0,0,255), 2.0f);
+          // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + y_axis_x*frame_height, center_y + y_axis_y*frame_height),
+          //                                       ImColor(0,0,255,255), 2.0f);
+          // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x + x_axis_x*frame_width + y_axis_x*frame_height, center_y + y_axis_y*frame_height + x_axis_y*frame_width), ImVec2(center_x + x_axis_x*frame_width, center_y + x_axis_y*frame_width),
+          //                                       ImColor(255,0,0,255), 2.0f);
+          // ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x + x_axis_x*frame_width + y_axis_x*frame_height, center_y + y_axis_y*frame_height + x_axis_y*frame_width), ImVec2(center_x + y_axis_x*frame_height, center_y + y_axis_y*frame_height),
+          //                                       ImColor(0,0,255,255), 2.0f);
+
+        }
       }
     }
   }
@@ -1060,6 +1092,14 @@ void drawAlignmentImageViewer() {
     ImGui::Image((void*)g_alignment_texture.id, 
                   ImVec2(tex_w, tex_h), ImVec2(0,0), ImVec2(1,1), 
                   ImColor(255,255,255,255), ImColor(0,0,0,0));
+  } else {
+    ImFont* font = ImGui::GetIO().Fonts->Fonts[0];
+    float scale_tmp = font->Scale;
+    font->Scale = 4.0f;
+    ImGui::PushFont(font);
+    ImGui::TextColored(ImColor(255,0,0,255), "FAILED\n");
+    font->Scale = scale_tmp;
+    ImGui::PopFont();
   }
 
   ImGui::EndChild();
