@@ -1463,7 +1463,7 @@ void Localization::verifyAndGenerateAlignmentImage (MicroGPS::Image* work_image,
     pose_array.push_back(m_image_dataset->getDatabaseImagePose(closest_database_image_idx));
     pose_array.push_back(pose_estimated);
     // pose_array.push_back(result.siftmatch_estimated_pose);
-    alignment_image = MicroGPS::ImageFunc::warpImageArray(image_array, pose_array, 0.25);
+    alignment_image = MicroGPS::ImageFunc::warpImageArray(image_array, pose_array, 0.25, true);
   }
 
   closest_database_image->release();

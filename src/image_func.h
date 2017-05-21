@@ -49,7 +49,8 @@ void      computeImageArrayWorldLimits(std::vector<Image*>& images,
                                        int& world_min_x,
                                        int& world_min_y,
                                        int& world_max_x,
-                                       int& world_max_y);
+                                       int& world_max_y,
+                                       bool dynamic_size = false);
 
 // precompute warp mapping, do not do actual warping
 void      computeWarpImageMapping(int im_width, int im_height,
@@ -62,7 +63,8 @@ void      computeWarpImageMapping(int im_width, int im_height,
 // warp an image array to generate a map
 Image*    warpImageArray(std::vector<Image*>& images,
                          std::vector<Eigen::Matrix3f>& poses,
-                         float warp_scale = 0.25);
+                         float warp_scale = 0.25,
+                         bool dynamic_size = false);
 
 
 Image*    gaussianBlur(Image* img, float win_size, float sigma);
