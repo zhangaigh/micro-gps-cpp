@@ -469,14 +469,18 @@ Image* warpImageArray(std::vector<Image*>& images,
   size_t im_height;
   size_t im_channels;
 
-  if (!dynamic_size) {
-    images[0]->loadImage();
-    images[0]->resize(warp_scale);
-    im_width    = images[0]->width();
-    im_height   = images[0]->height();
-    im_channels = images[0]->channels();
-    images[0]->release();
-  }
+
+
+
+
+
+  images[0]->loadImage();
+  images[0]->resize(warp_scale);
+  im_width    = images[0]->width();
+  im_height   = images[0]->height();
+  im_channels = images[0]->channels();
+  images[0]->release();
+
 
   int world_width = world_max_x - world_min_x + 1;
   int world_height = world_max_y - world_min_y + 1;
