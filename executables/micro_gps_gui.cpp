@@ -359,7 +359,7 @@ void EventTestCurrentFrame() {
 
   delete current_test_frame;
 
-  if (g_localizer_result.m_success_flag) {
+  if ((g_noshow_failed && g_localizer_result.m_success_flag) || g_localizer_result.m_can_estimate_pose) {
     if (g_pose_history.size() == 0 || g_show_traj) {
       if (g_pose_history.size() > 0) {
         std::cout << "g_pose_history.back().col(2) = " << g_pose_history.back().col(2) << std::endl;

@@ -4,6 +4,7 @@ bin*
 .DS_Store
 .*.m
 # scripts
+scripts/*.png
 
 # Compiled Object files
 *.slo
