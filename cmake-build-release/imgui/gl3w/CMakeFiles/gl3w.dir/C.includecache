@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../imgui/gl3w/GL/gl3w.h
+GL/glcorearb.h
+-
+
+../imgui/gl3w/GL/glcorearb.h
+windows.h
+-
+stddef.h
+-
+inttypes.h
+-
+inttypes.h
+-
+inttypes.h
+-
+stdint.h
+-
+stdint.h
+-
+inttypes.h
+-
+
+/Users/lgzhang/projects/micro_gps/code/mgps-cpp-v2/imgui/gl3w/GL/gl3w.c
+GL/gl3w.h
+-
+windows.h
+-
+Carbon/Carbon.h
+-
+dlfcn.h
+-
+GL/glx.h
+-
+

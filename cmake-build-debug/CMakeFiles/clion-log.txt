@@ -1,0 +1,7 @@
+/Applications/CLion.app/Contents/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/lgzhang/projects/micro_gps/code/mgps-cpp-v2
+-- x86_64   Darwin-14.5.0
+-- Building for:  Darwin-14.5.0  FlyCapture not available
+-- OpenCV_DIR=/usr/local/Cellar/opencv@2/2.4.13.2_2/share/OpenCV
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/lgzhang/projects/micro_gps/code/mgps-cpp-v2/cmake-build-debug

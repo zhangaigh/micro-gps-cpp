@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/src/image_func.cpp" line="472" />
+  </component>
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true" buildAllGenerated="true">
+    <generated>
+      <config projectName="micro_gps" targetName="micro_gps_exec" />
+      <config projectName="micro_gps" targetName="batch_crop_sift_patches" />
+      <config projectName="micro_gps" targetName="batch_extract_sift" />
+      <config projectName="micro_gps" targetName="mgps" />
+      <config projectName="micro_gps" targetName="imgui" />
+      <config projectName="micro_gps" targetName="gl3w" />
+      <config projectName="micro_gps" targetName="micro_gps_gui" />
+      <config projectName="micro_gps" targetName="imgui_impl" />
+    </generated>
+  </component>
+  <component name="CMakeSettings" ADDITIONAL_BUILD_OPTIONS="-j 8">
+    <configurations>
+      <configuration CONFIG_NAME="Release" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="442f82c3-ed08-4ee4-b738-641b0d019656" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/._.DS_Store" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.gitignore" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.vscode/c_cpp_properties.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.vscode/settings.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.vscode/tasks.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/CMakeLists.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/README.md" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/config_mac.cmake" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/config_tegra.cmake" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/config_visiongpu1.cmake" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/CMakeLists.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/batch_crop_sift_patches.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/batch_extract_sift.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/gui_helper.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/gui_helper.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/calibrate_intrinsics.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/calibrate_intrinsics.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/calibrate_robot_camera.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/exec_util.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/expand_map.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/flycapture_wrapper.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/flycapture_wrapper.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/gui.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/gui.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/gui_helper.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/gui_helper.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/main.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/monitor.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/online_gui.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/refine_poses.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/refine_poses.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/robot.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/robot.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/micro_gps_exec.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/micro_gps_gui.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/test_image_basics.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/CMakeLists.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/gl3w/CMakeLists.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/gl3w/GL/gl3w.c" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/gl3w/GL/gl3w.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/gl3w/GL/glcorearb.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/imgui_impl_glfw_gl3.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/imgui_impl_glfw_gl3.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/CMakeLists.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/Cousine-Regular.ttf" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/DroidSans.ttf" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/Karla-Regular.ttf" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/ProggyClean.ttf" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/ProggyTiny.ttf" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/README.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imconfig.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui_demo.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui_draw.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui_internal.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/stb_rect_pack.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/stb_textedit.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/stb_truetype.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compare_descriptors-cs4_hallway_long_packed.fig" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compare_descriptors-cs4_hallway_long_packed.pdf" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compare_descriptors-equad_unloading_long_packed.fig" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compare_descriptors-equad_unloading_long_packed.pdf" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compute_num_samples2.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/concat_images.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/get_file_list.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/mat2bin.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/parse_test_report.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/python/kmeans_clustering.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/python/myutil.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/python/peek_precomputed_feature.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/python/precomputed_sift.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_image_list.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_output_folder.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_precomputed_sift.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_sift_extract_surf.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_sift_generate_others.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/remove_png_gamma.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_compare_descriptors.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_concat_example_textures.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_concat_motion_blur_images.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_extract_features.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_extract_features_for_deepdesc.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_performance.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_read_sift_extract_surf.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_visual_words.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/test_surf.m" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/CMakeLists.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image_dataset.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image_dataset.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image_func.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image_func.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/inpolygon.c" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/inpolygon.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/dataset.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/dataset.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/inpolygon.c" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/inpolygon.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/main.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/micro_gps.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/micro_gps.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/util.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/work_image.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/work_image.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/micro_gps.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/micro_gps.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/util.h" afterPath="" />
+    </list>
+    <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
+    <ignored path="$PROJECT_DIR$/cmake-build-release/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="micro_gps" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="micro_gps_gui.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/executables/micro_gps_gui.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="62">
+              <caret line="692" column="44" lean-forward="false" selection-start-line="692" selection-start-column="44" selection-end-line="692" selection-end-column="44" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="peek_precomputed_feature.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scripts/python/peek_precomputed_feature.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="204">
+              <caret line="13" column="28" lean-forward="true" selection-start-line="13" selection-start-column="28" selection-end-line="13" selection-end-column="28" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="micro_gps.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/micro_gps.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="376">
+              <caret line="1356" column="54" lean-forward="true" selection-start-line="1356" selection-start-column="54" selection-end-line="1357" selection-end-column="54" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="102">
+              <caret line="6" column="9" lean-forward="true" selection-start-line="6" selection-start-column="9" selection-end-line="6" selection-end-column="9" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="micro_gps.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/micro_gps.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="23" column="32" lean-forward="false" selection-start-line="23" selection-start-column="32" selection-end-line="23" selection-end-column="32" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="image.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/image.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="111">
+              <caret line="103" column="50" lean-forward="false" selection-start-line="103" selection-start-column="50" selection-end-line="103" selection-end-column="50" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>preprocessDatabaseImages</find>
+      <find>reload</find>
+      <find>pca-</find>
+      <find>&quot;+&quot;</find>
+      <find>g_test_index</find>
+      <find>gaussian</find>
+      <find>3000</find>
+      <find>g_localizer_options</find>
+      <find>loadPre</find>
+      <find>g_map_image_pose_overlay_texture</find>
+      <find>localf</find>
+      <find>limit</find>
+      <find>circle</find>
+      <find>drawTest</find>
+      <find>addcie</find>
+      <find>addcircle</find>
+      <find>g_detected</find>
+      <find>work_image</find>
+      <find>release</find>
+      <find>verify</find>
+      <find>img1_ptr</find>
+      <find>m_test_feature_poses</find>
+      <find>g_detected_features</find>
+      <find>eventTest</find>
+      <find>center_x</find>
+      <find>ver</find>
+      <find>options</find>
+      <find>eventunu</find>
+      <find>vw_cells</find>
+      <find>SIFT-MATCH</find>
+    </findStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/scripts/python/myutil.py" />
+        <option value="$PROJECT_DIR$/src/micro_gps.h" />
+        <option value="$PROJECT_DIR$/executables/micro_gps_gui.cpp" />
+        <option value="$PROJECT_DIR$/scripts/python/peek_precomputed_feature.py" />
+        <option value="$PROJECT_DIR$/src/micro_gps.cpp" />
+        <option value="$PROJECT_DIR$/.gitignore" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="OCFindUsagesOptions" text="false" ivars="false" properties="true" derivedClasses="false" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="y" value="23" />
+    <option name="width" value="2560" />
+    <option name="height" value="1417" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="micro_gps" type="dad4c3:CidrFilesViewHelper$MyProjectTreeStructure$1" />
+              <item name="mgps-cpp-v2" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="micro_gps" type="dad4c3:CidrFilesViewHelper$MyProjectTreeStructure$1" />
+              <item name="mgps-cpp-v2" type="462c0819:PsiDirectoryNode" />
+              <item name="executables" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="micro_gps" type="dad4c3:CidrFilesViewHelper$MyProjectTreeStructure$1" />
+              <item name="mgps-cpp-v2" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.C/C++" />
+  </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings module-name="mgps-cpp-v2">
+        <option name="myModuleName" value="mgps-cpp-v2" />
+      </console-settings>
+    </option>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Application.Build All">
+    <configuration name="Build All" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" CONFIG_NAME="Release" EXPLICIT_BUILD_TARGET_NAME="all">
+      <envs />
+    </configuration>
+    <configuration name="batch_crop_sift_patches" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="micro_gps" TARGET_NAME="batch_crop_sift_patches" CONFIG_NAME="Release" RUN_TARGET_PROJECT_NAME="micro_gps" RUN_TARGET_NAME="batch_crop_sift_patches">
+      <envs />
+    </configuration>
+    <configuration name="batch_extract_sift" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="micro_gps" TARGET_NAME="batch_extract_sift" CONFIG_NAME="Release" RUN_TARGET_PROJECT_NAME="micro_gps" RUN_TARGET_NAME="batch_extract_sift">
+      <envs />
+    </configuration>
+    <configuration name="gl3w" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="micro_gps" TARGET_NAME="gl3w" CONFIG_NAME="Release">
+      <envs />
+    </configuration>
+    <configuration name="imgui" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="micro_gps" TARGET_NAME="imgui" CONFIG_NAME="Release">
+      <envs />
+    </configuration>
+    <configuration name="imgui_impl" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="micro_gps" TARGET_NAME="imgui_impl" CONFIG_NAME="Release">
+      <envs />
+    </configuration>
+    <configuration name="mgps" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="micro_gps" TARGET_NAME="mgps" CONFIG_NAME="Release">
+      <envs />
+    </configuration>
+    <configuration name="micro_gps_exec" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="micro_gps" TARGET_NAME="micro_gps_exec" CONFIG_NAME="Release" RUN_TARGET_PROJECT_NAME="micro_gps" RUN_TARGET_NAME="micro_gps_exec">
+      <envs />
+    </configuration>
+    <configuration name="micro_gps_gui" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="micro_gps" TARGET_NAME="micro_gps_gui" CONFIG_NAME="Release" RUN_TARGET_PROJECT_NAME="micro_gps" RUN_TARGET_NAME="micro_gps_gui">
+      <envs />
+    </configuration>
+    <configuration name="peek_precomputed_feature" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts/python" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="mgps-cpp-v2" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/python/peek_precomputed_feature.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+    </configuration>
+    <list size="10">
+      <item index="0" class="java.lang.String" itemvalue="Application.Build All" />
+      <item index="1" class="java.lang.String" itemvalue="Application.batch_crop_sift_patches" />
+      <item index="2" class="java.lang.String" itemvalue="Application.batch_extract_sift" />
+      <item index="3" class="java.lang.String" itemvalue="Application.micro_gps_exec" />
+      <item index="4" class="java.lang.String" itemvalue="Application.micro_gps_gui" />
+      <item index="5" class="java.lang.String" itemvalue="Application.imgui_impl" />
+      <item index="6" class="java.lang.String" itemvalue="Application.gl3w" />
+      <item index="7" class="java.lang.String" itemvalue="Application.imgui" />
+      <item index="8" class="java.lang.String" itemvalue="Application.mgps" />
+      <item index="9" class="java.lang.String" itemvalue="Python.peek_precomputed_feature" />
+    </list>
+    <recent_temporary>
+      <list size="1">
+        <item index="0" class="java.lang.String" itemvalue="Python.peek_precomputed_feature" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="442f82c3-ed08-4ee4-b738-641b0d019656" name="Default" comment="" />
+      <created>1503523399010</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1503523399010</updated>
+      <workItem from="1503523401026" duration="15888000" />
+      <workItem from="1503605239311" duration="6848000" />
+    </task>
+    <task id="LOCAL-00001" summary="update">
+      <created>1503688004550</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1503688004550</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="22736000" />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="23" width="2560" height="1417" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32936803" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2550186" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" x="-155" y="483" width="2560" height="443" />
+      <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32936803" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1453125" sideWeight="0.49739778" order="1" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection Results" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32936803" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.26171875" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" x="-1029" y="617" width="725" height="770" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1890625" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.123046875" sideWeight="0.5026022" order="0" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
+    <MESSAGE value="update" />
+    <option name="LAST_COMMIT_MESSAGE" value="update" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager />
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/executables/micro_gps_gui.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18003">
+          <caret line="1059" column="0" lean-forward="false" selection-start-line="1059" selection-start-column="0" selection-end-line="1059" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/micro_gps.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1105">
+          <caret line="65" column="52" lean-forward="false" selection-start-line="65" selection-start-column="32" selection-end-line="65" selection-end-column="52" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/image.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1751">
+          <caret line="103" column="50" lean-forward="false" selection-start-line="103" selection-start-column="50" selection-end-line="103" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/micro_gps.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="16541">
+          <caret line="973" column="0" lean-forward="false" selection-start-line="973" selection-start-column="0" selection-end-line="973" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/stdio.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="440">
+          <caret line="258" column="5" lean-forward="false" selection-start-line="258" selection-start-column="5" selection-end-line="258" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/Cellar/opencv@2/2.4.13.2_2/include/opencv2/imgproc/imgproc.hpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="440">
+          <caret line="388" column="18" lean-forward="false" selection-start-line="388" selection-start-column="18" selection-end-line="388" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/executables/batch_crop_sift_patches.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="82" lean-forward="true" selection-start-line="10" selection-start-column="82" selection-end-line="10" selection-end-column="82" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/util.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="457">
+          <caret line="47" column="14" lean-forward="true" selection-start-line="47" selection-start-column="14" selection-end-line="47" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/image.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="67">
+          <caret line="20" column="0" lean-forward="true" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/executables/micro_gps_exec.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-582">
+          <caret line="135" column="38" lean-forward="false" selection-start-line="135" selection-start-column="38" selection-end-line="135" selection-end-column="38" />
+          <folding>
+            <element signature="e#0#18#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/imgui/lib/imgui_draw.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="440">
+          <caret line="892" column="17" lean-forward="false" selection-start-line="892" selection-start-column="17" selection-end-line="892" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/image_func.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="927">
+          <caret line="535" column="30" lean-forward="true" selection-start-line="535" selection-start-column="30" selection-end-line="535" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/python/myutil.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="1" column="18" lean-forward="false" selection-start-line="1" selection-start-column="18" selection-end-line="1" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/image.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="111">
+          <caret line="103" column="50" lean-forward="false" selection-start-line="103" selection-start-column="50" selection-end-line="103" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/micro_gps.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="23" column="32" lean-forward="false" selection-start-line="23" selection-start-column="32" selection-end-line="23" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/python/peek_precomputed_feature.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="13" column="28" lean-forward="true" selection-start-line="13" selection-start-column="28" selection-end-line="13" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/executables/micro_gps_gui.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="62">
+          <caret line="692" column="44" lean-forward="false" selection-start-line="692" selection-start-column="44" selection-end-line="692" selection-end-column="44" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/micro_gps.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="376">
+          <caret line="1356" column="54" lean-forward="true" selection-start-line="1356" selection-start-column="54" selection-end-line="1357" selection-end-column="54" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="9" lean-forward="true" selection-start-line="6" selection-start-column="9" selection-end-line="6" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
