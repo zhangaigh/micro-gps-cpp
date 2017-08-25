@@ -22,115 +22,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="442f82c3-ed08-4ee4-b738-641b0d019656" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/._.DS_Store" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.vscode/c_cpp_properties.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.vscode/settings.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.vscode/tasks.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/CMakeLists.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/config_mac.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/config_tegra.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/config_visiongpu1.cmake" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/CMakeLists.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/batch_crop_sift_patches.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/batch_extract_sift.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/gui_helper.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/gui_helper.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/calibrate_intrinsics.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/calibrate_intrinsics.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/calibrate_robot_camera.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/exec_util.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/expand_map.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/flycapture_wrapper.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/flycapture_wrapper.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/gui.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/gui.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/gui_helper.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/gui_helper.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/main.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/monitor.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/online_gui.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/refine_poses.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/refine_poses.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/robot.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/legacy/robot.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/micro_gps_exec.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/micro_gps_gui.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/executables/test_image_basics.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/CMakeLists.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/gl3w/CMakeLists.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/gl3w/GL/gl3w.c" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/gl3w/GL/gl3w.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/gl3w/GL/glcorearb.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/imgui_impl_glfw_gl3.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/imgui_impl_glfw_gl3.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/CMakeLists.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/Cousine-Regular.ttf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/DroidSans.ttf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/Karla-Regular.ttf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/ProggyClean.ttf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/ProggyTiny.ttf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/extra_fonts/README.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imconfig.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui_demo.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui_draw.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/imgui_internal.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/stb_rect_pack.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/stb_textedit.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/imgui/lib/stb_truetype.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compare_descriptors-cs4_hallway_long_packed.fig" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compare_descriptors-cs4_hallway_long_packed.pdf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compare_descriptors-equad_unloading_long_packed.fig" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compare_descriptors-equad_unloading_long_packed.pdf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/compute_num_samples2.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/concat_images.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/get_file_list.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/mat2bin.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/parse_test_report.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/python/kmeans_clustering.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/python/myutil.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/python/peek_precomputed_feature.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/python/precomputed_sift.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_image_list.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_output_folder.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_precomputed_sift.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_sift_extract_surf.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/read_sift_generate_others.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/remove_png_gamma.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_compare_descriptors.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_concat_example_textures.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_concat_motion_blur_images.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_extract_features.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_extract_features_for_deepdesc.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_performance.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_read_sift_extract_surf.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/script_visual_words.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/test_surf.m" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/CMakeLists.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image_dataset.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image_dataset.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image_func.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/image_func.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/inpolygon.c" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/inpolygon.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/dataset.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/dataset.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/inpolygon.c" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/inpolygon.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/main.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/micro_gps.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/micro_gps.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/util.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/work_image.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/legacy/work_image.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/micro_gps.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/micro_gps.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/util.h" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <ignored path="$PROJECT_DIR$/cmake-build-release/" />
@@ -179,8 +72,8 @@
       <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="9" lean-forward="true" selection-start-line="6" selection-start-column="9" selection-end-line="6" selection-end-column="9" />
+            <state relative-caret-position="119">
+              <caret line="7" column="0" lean-forward="false" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -411,7 +304,7 @@
       <option name="presentableId" value="Default" />
       <updated>1503523399010</updated>
       <workItem from="1503523401026" duration="15888000" />
-      <workItem from="1503605239311" duration="6848000" />
+      <workItem from="1503605239311" duration="6926000" />
     </task>
     <task id="LOCAL-00001" summary="update">
       <created>1503688004550</created>
@@ -424,7 +317,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="22736000" />
+    <option name="totallyTimeSpent" value="22814000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -621,8 +514,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" column="9" lean-forward="true" selection-start-line="6" selection-start-column="9" selection-end-line="6" selection-end-column="9" />
+        <state relative-caret-position="119">
+          <caret line="7" column="0" lean-forward="false" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
           <folding />
         </state>
       </provider>

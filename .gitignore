@@ -3,8 +3,9 @@ build/
 bin*
 .DS_Store
 .*.m
-# scripts
 scripts/*.png
+cmake-build-release
+cmake-build-debug
 
 # Compiled Object files
 *.slo

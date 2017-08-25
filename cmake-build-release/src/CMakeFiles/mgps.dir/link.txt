@@ -1,2 +1,0 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libmgps.a  CMakeFiles/mgps.dir/image_dataset.cpp.o CMakeFiles/mgps.dir/image.cpp.o CMakeFiles/mgps.dir/image_func.cpp.o CMakeFiles/mgps.dir/micro_gps.cpp.o CMakeFiles/mgps.dir/inpolygon.c.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libmgps.a
