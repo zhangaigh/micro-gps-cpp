@@ -1,5 +1,6 @@
 # set(CMAKE_CXX_COMPILER clang-omp++)
 # set(CMAKE_C_COMPILER clang-omp)
+#change something
 
 
 message( STATUS "Building for:  " ${CMAKE_SYSTEM} "  FlyCapture not available")
@@ -12,10 +13,19 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -mmacosx-version-min=10.9 -framework OpenGL -fra
 
 set(EXECUTABLE_OUTPUT_PATH ${MY_DIR}/bin_mac)
 
+# set(CMAKE_MODULE_PATH "/usr/local/opt/opencv@2/share/OpenCV")
+# message(STATUS ${CMAKE_MODULE_PATH})
+
 
 # OpenCV
-find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIR})
+# find_package(OpenCV REQUIRED)
+# include_directories(${OpenCV_INCLUDE_DIR})
+# link_directories(${OpenCV_LIBS_DIR})
+
+set(OpenCV_DIR "/usr/local/Cellar/opencv@2/2.4.13.2_2/share/OpenCV")
+include(${OpenCV_DIR}/OpenCVConfig.cmake)
+include(${OpenCV_DIR}/OpenCVModules.cmake)
+message(STATUS "OpenCV_DIR=" ${OpenCV_DIR})
 
 
 # Eigen

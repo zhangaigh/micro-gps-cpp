@@ -21,11 +21,12 @@ namespace MicroGPS {
 struct LocalizationOptions {
   bool  m_save_debug_info;
   bool  m_generate_alignment_image;
-  bool  m_do_siftmatch_verification;
+  bool  m_do_match_verification;
   float m_image_scale_for_sift;
   int   m_best_knn;
   float m_confidence_thresh;  // not used
   bool  m_use_visual_words;
+  bool  m_use_sift_for_verification;
 
   LocalizationOptions() {
     this->reset();
@@ -34,11 +35,12 @@ struct LocalizationOptions {
   void reset() {
     m_save_debug_info           = true;
     m_generate_alignment_image  = true;
-    m_do_siftmatch_verification = true;
+    m_do_match_verification = true;
     m_image_scale_for_sift      = 0.5;
     m_best_knn                  = 9999;
     m_confidence_thresh         = 0.8f;
     m_use_visual_words          = false;
+    m_use_sift_for_verification = true;
   }
 };
 
@@ -181,7 +183,8 @@ public:
   void          computePCABasis();
   void          dimensionReductionPCA(const int num_dimensions_to_keep);
   void          preprocessDatabaseImages(const int num_samples_per_image, 
-                                         const float image_scale_for_sift);
+                                         const float image_scale_for_sift,
+                                         const bool use_first_n = false);
   void          removeDuplicatedFeatures();
   void          removeDuplicatedFeatures2();
 

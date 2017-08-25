@@ -181,7 +181,7 @@ void commandLineBatchTest() {
   // struct LocalizationOptions {
   //   bool  m_save_debug_info;
   //   bool  m_generate_alignment_image;
-  //   bool  m_do_siftmatch_verification;
+  //   bool  m_do_match_verification;
   //   float m_image_scale_for_sift;
   //   int   m_best_knn;
   //   float m_confidence_thresh;  // not used
@@ -190,7 +190,7 @@ void commandLineBatchTest() {
   
   g_localizer_options.m_save_debug_info           = true;
   g_localizer_options.m_generate_alignment_image  = false;
-  g_localizer_options.m_do_siftmatch_verification = true;
+  g_localizer_options.m_do_match_verification = true;
   g_localizer_options.m_image_scale_for_sift      = g_sift_extraction_scale;
   g_localizer_options.m_best_knn                  = g_best_knn;
   g_localizer_options.m_use_visual_words          = strcmp(g_visual_words_name, "");

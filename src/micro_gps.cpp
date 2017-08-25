@@ -126,7 +126,8 @@ void Localization::dimensionReductionPCA(const int num_dimensions_to_keep) {
 
 
 void Localization::preprocessDatabaseImages(const int num_samples_per_image, 
-                                            const float image_scale_for_sift) 
+                                            const float image_scale_for_sift,
+                                            const bool use_first_n)
 {
   int max_num_features = num_samples_per_image * m_image_dataset->getDatabaseSize();
   m_features = Eigen::MatrixXf(max_num_features, 128); //TODO: remove hard coded dimension
@@ -146,7 +147,18 @@ void Localization::preprocessDatabaseImages(const int num_samples_per_image,
 
     // random sample sift features
     std::vector<int> sel;
-    util::randomSample(work_image->getNumLocalFeatures(), num_samples_per_image, sel);
+    if (!use_first_n) {
+      util::randomSample(work_image->getNumLocalFeatures(), num_samples_per_image, sel);
+    } else {
+      int k = num_samples_per_image;
+      if (k > work_image->getNumLocalFeatures()) {
+        k = work_image->getNumLocalFeatures();
+      }
+      sel.resize(k);
+      for (int i = 0; i < k; i++) {
+        sel[i] = i;
+      }
+    }
 
     for (size_t j = 0; j < sel.size(); j++) {
       LocalFeature* f = work_image->getLocalFeature(sel[j]);
@@ -969,7 +981,6 @@ void Localization::locateUseVW(MicroGPS::Image* work_image,
   timing->m_total = (float)util::toc() / 1000.0f;
   printf("Localization costs %.02f ms in total\n", timing->m_total);
 
-
   if (options->m_save_debug_info) {
     results->m_cell_size = m_grid_step;
     results->m_peak_topleft_x = peak_x * m_grid_step + m_grid_min_x;
@@ -991,7 +1002,7 @@ void Localization::locateUseVW(MicroGPS::Image* work_image,
   }
   
 
-  if (!options->m_do_siftmatch_verification) {
+  if (!options->m_do_match_verification) {
     results->m_success_flag = true; // we assume success if no verification
     if (!options->m_generate_alignment_image) {
       return;
@@ -1186,7 +1197,7 @@ void Localization::locateGlobalNN(MicroGPS::Image* work_image,
   }
   
 
-  if (!options->m_do_siftmatch_verification) {
+  if (!options->m_do_match_verification) {
     results->m_success_flag = true; // we assume success if no verification
     if (!options->m_generate_alignment_image) {
       return;
@@ -1404,16 +1415,16 @@ void Localization::verifyAndGenerateAlignmentImage (MicroGPS::Image* work_image,
 
   // match images using SIFT features
   MicroGPS::Image* closest_database_image = m_database_images[closest_database_image_idx];
-  if (options->m_do_siftmatch_verification) {
+  if (options->m_do_match_verification) {
     closest_database_image->loadImage();
     std::vector<int> matched_idx1;
     std::vector<int> matched_idx2;
 
-    if (!work_image->loadPrecomputedFeatures(true)) { // use sift for verification
+    if (!work_image->loadPrecomputedFeatures(options->m_use_sift_for_verification)) { // use sift for verification
       work_image->extractSIFT(options->m_image_scale_for_sift);
     }
 
-    if (!closest_database_image->loadPrecomputedFeatures(true)) { // use sift for verification
+    if (!closest_database_image->loadPrecomputedFeatures(options->m_use_sift_for_verification)) { // use sift for verification
       closest_database_image->extractSIFT(options->m_image_scale_for_sift);
     }
 
@@ -1444,7 +1455,7 @@ void Localization::verifyAndGenerateAlignmentImage (MicroGPS::Image* work_image,
         results->m_x_error = pose_estimated(0, 2) - results->m_siftmatch_estimated_pose(0, 2);
         results->m_y_error = pose_estimated(1, 2) - results->m_siftmatch_estimated_pose(1, 2);
         float angle_estimated = atan2(pose_estimated(0, 1), pose_estimated(0, 0)) / M_PI * 180.0f;
-        float angle_verified = atan2(results->m_siftmatch_estimated_pose(0, 1), 
+        float angle_verified = atan2(results->m_siftmatch_estimated_pose(0, 1),
                                      results->m_siftmatch_estimated_pose(0, 0)) / M_PI * 180.0f;
         results->m_angle_error = angle_estimated - angle_verified;
         // verification passed

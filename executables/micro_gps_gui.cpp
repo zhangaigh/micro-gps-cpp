@@ -104,6 +104,9 @@ bool                      g_noshow_failed;
 bool                      g_show_traj;
 std::vector<Eigen::Matrix3f> g_pose_history(0);
 
+// visualize detected features on the test image
+std::vector<Eigen::Matrix3f> g_detected_features;
+
 DEFINE_bool   (batch_test,        false,                                              "do batch test");
 DEFINE_string (dataset_root,      "/Users/lgzhang/Documents/DATA/micro_gps_packed",   "dataset_root");
 DEFINE_string (dataset,           "fc_hallway_long_packed",                           "dataset to use");
@@ -289,7 +292,11 @@ void EventPreprocessing(bool create_anyway = true) {
   
   // compute precomputed values
   if (!util::checkFileExists(selected_database_path) || create_anyway) { // create if not exists
-    g_localizer->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale);
+    bool use_first_n = false;
+    if (!strcmp(g_precomputed_feature_suffix, "quad")) {
+      use_first_n = true;
+    }
+    g_localizer->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale, use_first_n);
     g_localizer->saveFeatures(selected_database_path);
   }
 
@@ -354,6 +361,13 @@ void EventTestCurrentFrame() {
                       &g_localizer_result,
                       &g_localizer_timing, 
                       alignment_image);
+
+  // save detected features for visualization
+  printf("detected %ld features\n", g_localizer_result.m_test_feature_poses.size());
+  g_detected_features = g_localizer_result.m_test_feature_poses;
+//  for (size_t i = 0; i < current_test_frame->getNumLocalFeatures(); i++) {
+//    g_detected_features[i] = g_localizer_result.m_test_feature_poses[i];
+//  }
 
   current_test_frame->release();
 
@@ -590,6 +604,7 @@ void drawSetting() {
       }
       g_dataset = new MicroGPS::ImageDataset(selected_dataset_path);
       g_dataset->loadDatabaseImages();
+      g_dataset->setPrecomputedFeatureSuffix(g_precomputed_feature_suffix); // set default suffix
       g_localizer->loadImageDataset(g_dataset);
     }
 
@@ -678,6 +693,15 @@ void drawSetting() {
     if (ImGui::Button("+", ImVec2(30, 0))) {
       g_test_index++;
     }
+
+    // limit slider range
+    if (g_test_index < 0) {
+      g_test_index = 0;
+    }
+    if (g_test_index > max_test_index){
+      g_test_index = max_test_index;
+    }
+
     ImGui::SameLine();
     static char test_all_prefix[256] = "prefix";
     ImGui::PushItemWidth(100);
@@ -689,7 +713,9 @@ void drawSetting() {
     }
     ImGui::Checkbox("Debug",      &g_localizer_options.m_save_debug_info);
     ImGui::SameLine();
-    ImGui::Checkbox("SIFT-Match", &g_localizer_options.m_do_siftmatch_verification);
+    ImGui::Checkbox("Verify", &g_localizer_options.m_do_match_verification);
+    ImGui::SameLine();
+    ImGui::Checkbox("Use SIFT", &g_localizer_options.m_use_sift_for_verification);
     ImGui::SameLine();
     ImGui::Checkbox("Alignment",  &g_localizer_options.m_generate_alignment_image);
 
@@ -699,7 +725,9 @@ void drawSetting() {
     if (g_test_index != g_prev_test_index && 
         g_dataset != NULL &&
         g_dataset->getTestSequenceSize() > 0) {
-      MicroGPS::Image* current_test_frame = 
+      g_detected_features.clear();
+      printf("g_detected_features cleared\n");
+      MicroGPS::Image* current_test_frame =
                       new MicroGPS::Image(g_dataset->getTestImagePath(g_test_index));
       current_test_frame->loadImage();
       g_test_image_texture.loadTextureFromImage(current_test_frame);
@@ -758,14 +786,14 @@ void drawSetting() {
 
     static char save_database_name[256] = "*-siftgpu.bin";
     // sprintf(save_database_name, "*-siftgpu.bin");
-    static char save_PCA_basis_name[256] = "pca-*-siftgpu.bin";
+    //static char save_PCA_basis_name[256] = "pca-*-siftgpu.bin";
     // sprintf(save_PCA_basis_name, "pca-*-siftgpu.bin");
     ImGui::InputText("database###save_database", save_database_name, 256);
-    ImGui::InputText("PCA basis###save_pca_basis", save_PCA_basis_name, 256);
+    //ImGui::InputText("PCA basis###save_pca_basis", save_PCA_basis_name, 256);
 
     if (ImGui::Button("process", ImVec2(-1, 0))) {
       strcpy(g_feature_database_name, save_database_name);
-      strcpy(g_pca_basis_name, save_PCA_basis_name);
+      //strcpy(g_pca_basis_name, save_PCA_basis_name);
       EventPreprocessing();
     }
 
@@ -932,7 +960,7 @@ void drawMapViewer() {
           } else {
             circle_color = ImColor(255, 0, 0, 255);          
           }
-          ImGui::GetWindowDrawList()->AddCircle(ImVec2(center_x, center_y), radius, 
+          ImGui::GetWindowDrawList()->AddCircle(ImVec2(center_x, center_y), radius,
                                                 circle_color, 24, thickness);
 
           // float frame_width = globalLength2TextureLength(1288);
@@ -1032,6 +1060,17 @@ void drawTestImageViewer() {
     //                                       ImVec2(tex_screen_pos.x, tex_screen_pos.y),
     //                                       ImVec2(tex_screen_pos.x+tex_w, tex_screen_pos.y+tex_h));
 
+
+    // draw keypoints
+    float center_x;
+    float center_y;
+    for (size_t i = 0; i < g_detected_features.size(); i++) {
+      center_x = g_detected_features[i](0, 2) * im_scaling + tex_screen_pos.x;
+      center_y = g_detected_features[i](1, 2) * im_scaling + tex_screen_pos.y;
+      ImGui::GetWindowDrawList()->AddCircle(ImVec2(center_x, center_y), 3.0,
+                                            ImColor(0,255,0,255), 12, 1.0);
+
+    }
   }
 
   ImGui::EndChild();
