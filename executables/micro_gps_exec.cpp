@@ -199,6 +199,8 @@ void commandLineBatchTest() {
   // for (int test_index = 0; test_index < g_dataset->getTestSequenceSize(); test_index++) {
   g_frames_to_test = std::min(g_frames_to_test, (int)g_dataset->getTestSequenceSize());
   
+  int num_successful_frames = 0;
+
   for (int test_index = 0; test_index < g_frames_to_test; test_index++) {
     char precomputed_feat_path[256];
     char precomputed_sift_path[256];
@@ -243,7 +245,13 @@ void commandLineBatchTest() {
     g_localizer_timing.printToFile(fp);
     g_localizer_result.printToFile(fp);
     fclose(fp);
+
+    if (g_localizer_result.m_success_flag) {
+      num_successful_frames++;
+    }
   }
+  printf("success rate: %d/%d = %f%\n", num_successful_frames, g_frames_to_test, float(num_successful_frames) / float(g_frames_to_test) * 100.0f);
+
 }
 
 
