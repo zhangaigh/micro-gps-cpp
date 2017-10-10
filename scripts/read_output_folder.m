@@ -1,6 +1,10 @@
-clear
+function read_output_folder(output_folder_path)
 
-output_folder_path = '/Users/lgzhang/Dropbox/Research/micro_gps/code/mgps-cpp-v2/bin_mac/test_results/output-vw-equad_unloading_long_packed-fine_asphalt_vw.bin-sequence_after_thxgiving_normal2.test-db50-dim128';
+if ~exist('output_folder_path', 'var')
+  % output_folder_path = '../bin_mac/test_results/output-vw-equad_unloading_long_packed-fine_asphalt_vw.bin-sequence_after_thxgiving_normal2.test-db50-dim128';
+  % output_folder_path = '../bin_mac/test_results/test_sequence170920_1';
+  output_folder_path = '../bin_mac/test_results/test_sequence170925_6';
+end
 
 % x_thresh = 30;
 % y_thresh = 30;

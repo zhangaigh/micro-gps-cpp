@@ -6,6 +6,7 @@ bin*
 scripts/*.png
 cmake-build-release
 cmake-build-debug
+.idea
 
 # Compiled Object files
 *.slo

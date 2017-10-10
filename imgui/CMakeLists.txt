@@ -9,7 +9,7 @@ add_library(imgui_impl imgui_impl_glfw_gl3.cpp)
 
 if(ON_MAC)
   target_link_libraries(imgui_impl
-                        glfw3
+                        glfw
                         gl3w
                         imgui)
 # --------------------------------------------------------------------

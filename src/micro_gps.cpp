@@ -1029,6 +1029,7 @@ void Localization::locateGlobalNN(MicroGPS::Image* work_image,
 {
   timing->reset();
   results->reset();
+  results->m_test_image_path = std::string(work_image->getImagePath());
 
   util::tic();
 

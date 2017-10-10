@@ -73,7 +73,7 @@ while ~feof(fid)
       val = sscanf(l, 'Test image path: %s');
       debug_info.test_image_path = val;
     case 15
-      val = sscanf(l, 'Closest database image path');
+      val = sscanf(l, 'Closest database image path :%s');
       debug_info.closest_database_image_path = val;
   end
 

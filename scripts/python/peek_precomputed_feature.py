@@ -17,10 +17,10 @@ def read_precomputed_sift(sift_file):
     return loc, des
 
 
-# loc, des = read_precomputed_sift('/Users/lgzhang/Documents/DATA/micro_gps_packed/equad_unloading_long_packed/precomputed_features/database.sift/frame000100.bin')
-loc, des = read_precomputed_sift('/Users/lgzhang/Documents/DATA/micro_gps_packed/fields_wood_recapture_long_packed/precomputed_features/database.quad/frame000023.bin')
+# loc, des = read_precomputed_sift('/Users/lgzhang/Documents/DATA/micro_gps_packed/equad_unloading_long_packed/precomputed_features/database.quadsift/frame000100.bin')
+loc, des = read_precomputed_sift('/Users/lgzhang/Documents/DATA/micro_gps_packed/fields_wood_recapture_long_packed/precomputed_features/database.quadsift/frame000023.bin')
 
-# np.set_printoptions(threshold=np.inf)
+np.set_printoptions(threshold=10)
 print(loc[:, 2])
 
 print(loc[:, 2].mean())
