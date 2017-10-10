@@ -13,13 +13,15 @@
 // #include <GLFW/glfw3.h>
 
 
-#ifdef ON_MAC
-char* g_dataset_root      = (char*)("/Users/lgzhang/Documents/DATA/micro_gps_packed");
-#endif
+// #ifdef ON_MAC
+// char* g_dataset_root      = (char*)("/Users/lgzhang/Documents/DATA/micro_gps_packed");
+// #endif
 
-#ifdef ON_VISIONGPU1
-char* g_dataset_root      = (char*)("/data/linguang/micro_gps_packed");
-#endif
+// #ifdef ON_VISIONGPU1
+// char* g_dataset_root      = (char*)("/data/linguang/micro_gps_packed");
+// #endif
+
+char g_dataset_root[256];
 
 char* g_database_root     = (char*)("databases");
 char* g_PCA_basis_root    = (char*)("pca_bases");
