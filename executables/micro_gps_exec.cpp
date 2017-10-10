@@ -81,7 +81,7 @@ DEFINE_string (feat_suffix,       "sift",                                       
 
 void LoadVariablesFromCommandLine() {
   // TODO: overwrite g* variables with gflags values
-  // strcpy(g_database_root,                 FLAGS_dataset_root.c_str());
+  strcpy(g_database_root,                 FLAGS_dataset_root.c_str());
   strcpy(g_dataset_name,                  FLAGS_dataset.c_str());
   strcpy(g_testset_name,                  FLAGS_testset.c_str());
   strcpy(g_test_results_name,             FLAGS_output.c_str());
