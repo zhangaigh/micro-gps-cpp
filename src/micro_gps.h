@@ -35,7 +35,7 @@ struct LocalizationOptions {
   void reset() {
     m_save_debug_info           = true;
     m_generate_alignment_image  = true;
-    m_do_match_verification = true;
+    m_do_match_verification     = true;
     m_image_scale_for_sift      = 0.5;
     m_best_knn                  = 9999;
     m_confidence_thresh         = 0.8f;

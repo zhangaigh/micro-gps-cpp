@@ -397,7 +397,7 @@ void Image::extractSIFT(float downsampling) {
     f->y = keypoints[i].y / downsampling;
     f->angle = -keypoints[i].o; //siftgpu uses different conventions, we need to flip the sign of the angle
     f->scale = keypoints[i].s / downsampling;
-    f->strength = 0.0f;
+    f->strength = keypoints[i].s; // hacking: prioritize matching large features
     f->descriptor = Eigen::Map<Eigen::RowVectorXf>((float*)(descriptors + 128 * i), 128);
 
     // double angle = -keypoints[i].o; 
@@ -452,12 +452,13 @@ void Image::saveLocalFeatures(const char* path, const int num_samples, const flo
 
   for (int i = 0; i < num_features; i++) {
     LocalFeature* f = valid_features[sel[i]];
-    float kp[4];
+    float kp[5];
     kp[0] = f->x;
     kp[1] = f->y;
     kp[2] = f->scale;
     kp[3] = f->angle;
-    fwrite(kp, sizeof(float), 4, fp);   
+    kp[4] = f->strength; // save strength as well
+    fwrite(kp, sizeof(float), 5, fp);   
     fwrite(f->descriptor.data(), sizeof(float), f->descriptor.size(), fp);    
   }
 
@@ -489,7 +490,7 @@ bool Image::loadPrecomputedFeatures(const bool load_sift) {
   //size[1] = 128;
   printf("size[] = %d x %d\n", size[0], size[1]);
 
-  int chunk_size = size[1] + 4; // 4 floats for locations
+  int chunk_size = size[1] + 5; // 5 floats for locations
   float* buffer = new float[size[0] * chunk_size];  
   fread(buffer, sizeof(float), chunk_size * size[0], fp);
   fclose(fp);
@@ -507,11 +508,12 @@ bool Image::loadPrecomputedFeatures(const bool load_sift) {
     f->y = buffer[i * chunk_size + 1];
     f->scale = buffer[i * chunk_size + 2];
     f->angle = buffer[i * chunk_size + 3];
+    f->strength = buffer[i * chunk_size + 4];    
     if (f->scale < 1.0) {
       printf("%d: scale = %f!\n", i, f->scale);
       exit(-1);
     }
-    f->descriptor = Eigen::Map<Eigen::RowVectorXf>(buffer + chunk_size * i + 4, size[1]);
+    f->descriptor = Eigen::Map<Eigen::RowVectorXf>(buffer + chunk_size * i + 5, size[1]);
 
     // printf("i = %d\n", i);
     f->local_pose(0, 0) = cos(f->angle);
