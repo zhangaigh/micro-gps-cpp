@@ -397,7 +397,7 @@ void Image::extractSIFT(float downsampling) {
     f->y = keypoints[i].y / downsampling;
     f->angle = -keypoints[i].o; //siftgpu uses different conventions, we need to flip the sign of the angle
     f->scale = keypoints[i].s / downsampling;
-    f->strength = 0.0f;
+    f->strength = keypoints[i].s; // hacking: prioritize matching large features
     f->descriptor = Eigen::Map<Eigen::RowVectorXf>((float*)(descriptors + 128 * i), 128);
 
     // double angle = -keypoints[i].o; 
@@ -457,7 +457,7 @@ void Image::saveLocalFeatures(const char* path, const int num_samples, const flo
     kp[1] = f->y;
     kp[2] = f->angle;    
     kp[3] = f->scale;
-    kp[4] = f->strength;
+    kp[4] = f->strength; // save strength as well
     fwrite(kp, sizeof(float), 5, fp);   
     fwrite(f->descriptor.data(), sizeof(float), f->descriptor.size(), fp);    
   }
