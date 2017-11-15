@@ -91,6 +91,7 @@ public:
   bool            loadPrecomputedFeatures(const bool load_sift);
   size_t          getNumLocalFeatures();
   LocalFeature*   getLocalFeature(size_t idx);
+  void            sortLocalFeatures();
   void            linearFeatureCompression(const Eigen::MatrixXf& basis);
 
   // helper

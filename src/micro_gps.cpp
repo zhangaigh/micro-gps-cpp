@@ -127,7 +127,7 @@ void Localization::dimensionReductionPCA(const int num_dimensions_to_keep) {
 
 void Localization::preprocessDatabaseImages(const int num_samples_per_image, 
                                             const float image_scale_for_sift,
-                                            const bool use_first_n)
+                                            const bool use_top_n)
 {
   int max_num_features = num_samples_per_image * m_image_dataset->getDatabaseSize();
   m_features = Eigen::MatrixXf(max_num_features, 128); //TODO: remove hard coded dimension
@@ -147,9 +147,10 @@ void Localization::preprocessDatabaseImages(const int num_samples_per_image,
 
     // random sample sift features
     std::vector<int> sel;
-    if (!use_first_n) {
+    if (!use_top_n) {
       util::randomSample(work_image->getNumLocalFeatures(), num_samples_per_image, sel);
     } else {
+      work_image->sortLocalFeatures();
       int k = num_samples_per_image;
       if (k > work_image->getNumLocalFeatures()) {
         k = work_image->getNumLocalFeatures();
@@ -159,9 +160,15 @@ void Localization::preprocessDatabaseImages(const int num_samples_per_image,
         sel[i] = i;
       }
     }
+    // printf("picked %ld features\n", sel.size());
+    // printf("number of features = %d\n", work_image->getNumLocalFeatures());
+    // LocalFeature* dummy = work_image->getLocalFeature(0);
+    // printf("f->strength = %f\n", dummy->strength);
 
     for (size_t j = 0; j < sel.size(); j++) {
       LocalFeature* f = work_image->getLocalFeature(sel[j]);
+      // printf("j = %ld\n", j);
+      // printf("f->strength = %f\n", f->strength);
       m_features.row(cnt) = f->descriptor;
       f->global_pose = image_pose * f->local_pose;
 
@@ -174,6 +181,8 @@ void Localization::preprocessDatabaseImages(const int num_samples_per_image,
       m_feature_local_locations(cnt, 3) = f->angle;
       cnt++;
     }
+    printf("added to database\n");
+    // exit(0);
 
     work_image->release();
   }

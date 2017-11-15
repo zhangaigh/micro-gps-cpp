@@ -184,7 +184,7 @@ public:
   void          dimensionReductionPCA(const int num_dimensions_to_keep);
   void          preprocessDatabaseImages(const int num_samples_per_image, 
                                          const float image_scale_for_sift,
-                                         const bool use_first_n = false);
+                                         const bool use_top_n = false);
   void          removeDuplicatedFeatures();
   void          removeDuplicatedFeatures2();
 

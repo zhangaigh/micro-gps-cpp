@@ -15,6 +15,7 @@
     "type_traits": "cpp",
     "unordered_map": "cpp",
     "typeinfo": "cpp",
-    "*.tcc": "cpp"
+    "*.tcc": "cpp",
+    "cstdlib": "cpp"
   }
 }

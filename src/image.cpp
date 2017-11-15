@@ -452,12 +452,13 @@ void Image::saveLocalFeatures(const char* path, const int num_samples, const flo
 
   for (int i = 0; i < num_features; i++) {
     LocalFeature* f = valid_features[sel[i]];
-    float kp[4];
+    float kp[5];
     kp[0] = f->x;
     kp[1] = f->y;
-    kp[2] = f->scale;
-    kp[3] = f->angle;
-    fwrite(kp, sizeof(float), 4, fp);   
+    kp[2] = f->angle;    
+    kp[3] = f->scale;
+    kp[4] = f->strength;
+    fwrite(kp, sizeof(float), 5, fp);   
     fwrite(f->descriptor.data(), sizeof(float), f->descriptor.size(), fp);    
   }
 
@@ -489,7 +490,7 @@ bool Image::loadPrecomputedFeatures(const bool load_sift) {
   //size[1] = 128;
   printf("size[] = %d x %d\n", size[0], size[1]);
 
-  int chunk_size = size[1] + 4; // 4 floats for locations
+  int chunk_size = size[1] + 5; // 5 floats for (x, y, o, s, r)
   float* buffer = new float[size[0] * chunk_size];  
   fread(buffer, sizeof(float), chunk_size * size[0], fp);
   fclose(fp);
@@ -505,13 +506,14 @@ bool Image::loadPrecomputedFeatures(const bool load_sift) {
     LocalFeature* f = new LocalFeature;
     f->x = buffer[i * chunk_size + 0];
     f->y = buffer[i * chunk_size + 1];
-    f->scale = buffer[i * chunk_size + 2];
-    f->angle = buffer[i * chunk_size + 3];
+    f->angle = buffer[i * chunk_size + 2];    
+    f->scale = buffer[i * chunk_size + 3];
+    f->strength = buffer[i * chunk_size + 4];
     if (f->scale < 1.0) {
       printf("%d: scale = %f!\n", i, f->scale);
       exit(-1);
     }
-    f->descriptor = Eigen::Map<Eigen::RowVectorXf>(buffer + chunk_size * i + 4, size[1]);
+    f->descriptor = Eigen::Map<Eigen::RowVectorXf>(buffer + chunk_size * i + 5, size[1]);
 
     // printf("i = %d\n", i);
     f->local_pose(0, 0) = cos(f->angle);
@@ -537,6 +539,36 @@ size_t Image::getNumLocalFeatures() {
 
 LocalFeature* Image::getLocalFeature(size_t idx) {
   return m_local_features[idx];
+}
+
+void Image::sortLocalFeatures() {
+  // collect feature responses
+  std::vector<float> responses(m_local_features.size());
+  for (size_t i = 0; i < m_local_features.size(); i++) {
+    responses[i] = m_local_features[i]->strength; 
+  }
+  // printf("collected responses\n");
+
+  std::vector<size_t> sorted_idx = util::argsort(responses);
+  // printf("sorted responses\n");
+
+  std::vector<LocalFeature*> sorted_local_features(sorted_idx.size());
+  for (int i = 0; i < sorted_idx.size(); i++) {
+    sorted_local_features[i] = m_local_features[sorted_idx[sorted_idx.size()-1-i]];
+    // printf("response = %f\n", sorted_local_features[i]->strength);
+  }
+  // exit(0);
+
+  // for (int i = sorted_idx.size()-1; i >= 0; i--) {
+  //   sorted_local_features[sorted_idx.size()-1-i] = m_local_features[sorted_idx[i]];
+  //   // printf("response = %f\n", responses[sorted_idx[i]]);
+  // }
+  // for (int i = 0; i < 10; i++) {
+  //   printf("response = %f\n", sorted_local_features[i]->strength);
+  // }
+  // exit(0);
+
+  m_local_features = sorted_local_features;
 }
 
 

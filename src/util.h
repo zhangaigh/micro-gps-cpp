@@ -58,6 +58,19 @@ inline void randomSample(int n, int k, std::vector<int>& sel) {
   sel.resize(k);
 }
 
+
+template <typename T>
+std::vector<size_t> argsort(const std::vector<T> &v) {
+  // initialize original index locations
+  std::vector<size_t> idx(v.size());
+  iota(idx.begin(), idx.end(), 0);
+
+  // sort indexes based on comparing values in v
+  std::sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+  return idx;
+}
+
 inline void notSel(int n, std::vector<int>& sel_in, std::vector<int>& not_sel) {
   std::vector<int> sel = sel_in; // make a copy
 

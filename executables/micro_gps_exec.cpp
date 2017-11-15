@@ -21,7 +21,7 @@
 // char* g_dataset_root      = (char*)("/data/linguang/micro_gps_packed");
 // #endif
 
-char g_dataset_root[256];
+char  g_dataset_root[256];
 
 char* g_database_root     = (char*)("databases");
 char* g_PCA_basis_root    = (char*)("pca_bases");
@@ -79,11 +79,11 @@ DEFINE_int32  (frames_to_test,    9999999,                                      
 // offline
 DEFINE_int32  (db_sample_size,    50,                                                 "number of features sampled from each database image");
 DEFINE_string (feat_suffix,       "sift",                                             "default suffix for precomputed feature");
-
+DEFINE_bool   (use_top_n,         false,                                              "use top n features with highest response to build database");
 
 void LoadVariablesFromCommandLine() {
   // TODO: overwrite g* variables with gflags values
-  strcpy(g_database_root,                 FLAGS_dataset_root.c_str());
+  strcpy(g_dataset_root,                  FLAGS_dataset_root.c_str());
   strcpy(g_dataset_name,                  FLAGS_dataset.c_str());
   strcpy(g_testset_name,                  FLAGS_testset.c_str());
   strcpy(g_test_results_name,             FLAGS_output.c_str());
@@ -133,7 +133,7 @@ void commandLineBatchTest() {
   char s[256];
   sprintf(s, "%s/%s", g_database_root, g_feature_database_name);
   if (!util::checkFileExists(s)) { // create if not exists
-    g_localizer->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale);
+    g_localizer->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale, FLAGS_use_top_n);
     g_localizer->saveFeatures(s);
     printf("Feature database computed\n");
   } else {
@@ -262,6 +262,8 @@ int main(int argc, char *argv[]) {
   printf("Arguments parsed\n");
   
   LoadVariablesFromCommandLine();
+
+  printf("dataset_root = %s\n", g_dataset_root);
 
   MicroGPS::initSiftGPU();
   
