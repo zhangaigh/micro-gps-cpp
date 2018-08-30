@@ -97,6 +97,7 @@ ImageGL3Texture           g_test_image_texture;
 ImageGL3Texture           g_alignment_texture;
 
 bool                      g_draw_camera = true;
+float                     g_camera_radius = 10.0f;
 float                     g_world_min_x = 0.0f;
 float                     g_world_min_y = 0.0f;
 
@@ -126,8 +127,10 @@ DEFINE_bool   (nogui,             false,                                        
 // offline
 DEFINE_int32  (db_sample_size,    50,                                                 "number of features sampled from each database image");
 DEFINE_string (feat_suffix,       "sift",                                             "default suffix for precomputed feature");
+DEFINE_double (camera_radius,     10.0f,                                              "radius of the camera circle");
 DEFINE_bool   (noshow_failed,     false,                                              "disable showing failed cases");
 DEFINE_bool   (show_traj,         false,                                              "show trajectory");
+DEFINE_bool   (use_top_n,         false,                                              "use top n features with highest response to build database");
 
 
 void LoadVariablesFromCommandLine() {
@@ -146,6 +149,7 @@ void LoadVariablesFromCommandLine() {
   g_database_sample_size                = FLAGS_db_sample_size;
   g_sift_extraction_scale               = FLAGS_sift_ext_scale;
 
+  g_camera_radius                       = (float)FLAGS_camera_radius;
   g_noshow_failed                       = FLAGS_noshow_failed;
   g_show_traj                           = FLAGS_show_traj;
 
@@ -292,11 +296,11 @@ void EventPreprocessing(bool create_anyway = true) {
   
   // compute precomputed values
   if (!util::checkFileExists(selected_database_path) || create_anyway) { // create if not exists
-    bool use_first_n = false;
-    if (!strcmp(g_precomputed_feature_suffix, "quad")) {
-      use_first_n = true;
-    }
-    g_localizer->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale, use_first_n);
+    // bool use_first_n = false;
+    // if (!strcmp(g_precomputed_feature_suffix, "quad")) {
+    //   use_first_n = true;
+    // }
+    g_localizer->preprocessDatabaseImages(g_database_sample_size, g_sift_extraction_scale, FLAGS_use_top_n);
     g_localizer->saveFeatures(selected_database_path);
   }
 
@@ -945,8 +949,9 @@ void drawMapViewer() {
         center_y += tex_screen_pos.y;
 
         if (g_draw_camera) {
-          float thickness = 2.0f;
-          float radius = 10.0f;
+          // float thickness = 2.0f;
+          float radius = g_camera_radius;
+          float thickness = radius / 5.0;
           ImGui::GetWindowDrawList()->AddLine(ImVec2(center_x, center_y), 
                                               ImVec2(center_x + x_axis_x*radius, center_y + x_axis_y*radius),
                                               ImColor(0,0,255,255), thickness);
