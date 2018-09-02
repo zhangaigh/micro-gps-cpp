@@ -22,6 +22,7 @@
 // #endif
 
 char  g_dataset_root[256];
+char  g_feature_root[256];
 
 char* g_database_root     = (char*)("databases");
 char* g_PCA_basis_root    = (char*)("pca_bases");
@@ -63,6 +64,7 @@ int g_test_index = 0;
 
 // DEFINE_bool   (batch_test,        false,                                              "do batch test");
 DEFINE_string (dataset_root,      "/Users/lgzhang/Documents/DATA/micro_gps_packed",   "dataset_root");
+DEFINE_string (feature_root,      "/Users/lgzhang/Documents/DATA/micro_gps_packed_features", "feature root");
 DEFINE_string (dataset,           "fc_hallway_long_packed",                           "dataset to use");
 DEFINE_string (testset,           "test00.test",                                      "test sequence");
 DEFINE_string (output,            "tests",                                            "output");
@@ -84,6 +86,7 @@ DEFINE_bool   (use_top_n,         false,                                        
 void LoadVariablesFromCommandLine() {
   // TODO: overwrite g* variables with gflags values
   strcpy(g_dataset_root,                  FLAGS_dataset_root.c_str());
+  strcpy(g_feature_root,                  FLAGS_feature_root.c_str());
   strcpy(g_dataset_name,                  FLAGS_dataset.c_str());
   strcpy(g_testset_name,                  FLAGS_testset.c_str());
   strcpy(g_test_results_name,             FLAGS_output.c_str());
@@ -111,8 +114,10 @@ void commandLineBatchTest() {
 
   char dataset_path[256];
   sprintf(dataset_path, "%s/%s", g_dataset_root, g_dataset_name);
+  char precomputed_feature_path[256];
+  sprintf(precomputed_feature_path, "%s/%s", g_feature_root, g_dataset_name);
 
-  g_dataset = new MicroGPS::ImageDataset(dataset_path);
+  g_dataset = new MicroGPS::ImageDataset(dataset_path, precomputed_feature_path);
   g_dataset->loadDatabaseImages();
   g_dataset->loadTestSequenceByName(g_testset_name);
   g_dataset->setPrecomputedFeatureSuffix(g_precomputed_feature_suffix);
@@ -192,7 +197,7 @@ void commandLineBatchTest() {
   
   g_localizer_options.m_save_debug_info           = true;
   g_localizer_options.m_generate_alignment_image  = false;
-  g_localizer_options.m_do_match_verification = true;
+  g_localizer_options.m_do_match_verification     = true;
   g_localizer_options.m_image_scale_for_sift      = g_sift_extraction_scale;
   g_localizer_options.m_best_knn                  = g_best_knn;
   g_localizer_options.m_use_visual_words          = strcmp(g_visual_words_name, "");
@@ -208,7 +213,11 @@ void commandLineBatchTest() {
     char precomputed_sift_path[256];
 
     g_dataset->getTestImagePrecomputedFeatures(test_index, precomputed_feat_path);
-    g_dataset->getTestImagePrecomputedFeatures(test_index, precomputed_sift_path, (char*)"sift");
+    g_dataset->getTestImagePrecomputedFeatures(
+      test_index, 
+      precomputed_sift_path, 
+      (char*)"key_siftgpu_desc_siftgpu_reso_0.5"
+    );
 
     MicroGPS::Image* current_test_frame = 
           new MicroGPS::Image(g_dataset->getTestImagePath(test_index),

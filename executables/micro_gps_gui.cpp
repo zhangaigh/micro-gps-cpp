@@ -23,6 +23,7 @@
 
 #ifdef ON_MAC
 char* g_dataset_root      = (char*)("/Users/lgzhang/Documents/DATA/micro_gps_packed");
+char* g_feature_root      = (char*)("/Users/lgzhang/Documents/DATA/micro_gps_packed_features");
 char* g_map_image_root    = (char*)("maps");
 char* g_database_root     = (char*)("databases");
 char* g_PCA_basis_root    = (char*)("pca_bases");
@@ -109,6 +110,7 @@ std::vector<Eigen::Matrix3f> g_detected_features;
 
 DEFINE_bool   (batch_test,        false,                                              "do batch test");
 DEFINE_string (dataset_root,      "/Users/lgzhang/Documents/DATA/micro_gps_packed",   "dataset_root");
+DEFINE_string (feature_root,      "/Users/lgzhang/Documents/DATA/micro_gps_packed_features", "feature root")
 DEFINE_string (dataset,           "fc_hallway_long_packed",                           "dataset to use");
 DEFINE_string (testset,           "test00.test",                                      "test sequence");
 DEFINE_string (output,            "tests",                                            "output");
@@ -341,7 +343,11 @@ void EventTestCurrentFrame() {
   char precomputed_sift_path[256];
 
   g_dataset->getTestImagePrecomputedFeatures(g_test_index, precomputed_feat_path);
-  g_dataset->getTestImagePrecomputedFeatures(g_test_index, precomputed_sift_path, (char*)("sift"));
+  g_dataset->getTestImagePrecomputedFeatures(
+    g_test_index, 
+    precomputed_sift_path, 
+    (char*)("key_siftgpu_desc_siftgpu_reso_0.5")
+  );
 
   MicroGPS::Image* current_test_frame = 
         new MicroGPS::Image(g_dataset->getTestImagePath(g_test_index),
@@ -596,8 +602,20 @@ void drawSetting() {
     ImGui::Combo("###dataset_name", &g_dataset_selected_idx, g_dataset_list);
     ImGui::SameLine();
     char selected_dataset_path[256];
-    sprintf(selected_dataset_path, "%s/%s", g_dataset_root, 
-                                            g_dataset_list[g_dataset_selected_idx].c_str());
+    sprintf(
+      selected_dataset_path, 
+      "%s/%s", 
+      g_dataset_root, 
+      g_dataset_list[g_dataset_selected_idx].c_str()
+    );
+    char selected_dataset_precomputed_feature_path[256];
+    sprintf(
+      selected_dataset_precomputed_feature_path, 
+      "%s/%s", 
+      g_feature_root, 
+      g_dataset_list[g_dataset_selected_idx].c_str()
+    );
+    
     if (ImGui::Button("load dataset", ImVec2(-1, 0))) {
       if (g_dataset) {
         delete g_dataset;
