@@ -174,6 +174,10 @@ void Localization::preprocessDatabaseImages(const int num_samples_per_image,
       LocalFeature* f = work_image->getLocalFeature(sel[j]);
       // printf("j = %ld\n", j);
       // printf("f->strength = %f\n", f->strength);
+      // printf("f->descriptor.size() = %d\n", f->descriptor.size());
+      if (m_features.cols() > f->descriptor.size()) {
+        m_features.conservativeResize(m_features.rows(), f->descriptor.size());
+      }
       m_features.row(cnt) = f->descriptor;
       f->global_pose = image_pose * f->local_pose;
 
