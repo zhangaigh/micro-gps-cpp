@@ -38,7 +38,7 @@ elseif(ON_TEGRA)
 
 # --------------------------------------------------------------------
 
-elseif(ON_VISIONGPU1)
+elseif(ON_LINUX)
   add_executable(micro_gps_exec micro_gps_exec.cpp)
   add_executable(batch_extract_sift batch_extract_sift.cpp)
   add_executable(batch_crop_sift_patches batch_crop_sift_patches.cpp)

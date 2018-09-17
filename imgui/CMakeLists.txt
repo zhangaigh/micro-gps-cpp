@@ -21,7 +21,7 @@ elseif(ON_TEGRA)
                         gl3w
                         imgui)
 # --------------------------------------------------------------------
-elseif(ON_VISIONGPU1)
+elseif(ON_LINUX)
   target_link_libraries(imgui_impl
                         glfw3
                         gl3w

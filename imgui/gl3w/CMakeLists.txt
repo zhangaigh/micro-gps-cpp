@@ -6,7 +6,7 @@ add_library(gl3w ${SRCS})
 
 if(ON_MAC)
   target_link_libraries(gl3w)
-elseif(ON_TEGRA OR ON_VISIONGPU1)
+elseif(ON_TEGRA OR ON_LINUX)
   target_link_libraries(gl3w
         dl
         rt 

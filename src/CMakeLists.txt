@@ -31,7 +31,7 @@ if(ON_MAC)
   #                       siftgpu)
 
 
-elseif(ON_VISIONGPU1)
+elseif(ON_LINUX)
   target_link_libraries(mgps
         ${OpenCV_LIBS}
         flann

@@ -9,7 +9,7 @@ message(STATUS ${CMAKE_SYSTEM_PROCESSOR} "   " ${CMAKE_SYSTEM})
 
 include(config.cmake)
 
-if (NOT ON_VISIONGPU1)
+if (NOT ON_LINUX)
   include_directories(imgui)
   include_directories(imgui/gl3w)
   include_directories(imgui/lib)
