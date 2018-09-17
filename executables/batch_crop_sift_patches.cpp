@@ -32,7 +32,7 @@ int main (int argc, char** argv) {
   sprintf(dataset_path, "%s/%s", FLAGS_dataset_root.c_str(), FLAGS_dataset.c_str());
 
   bool extracting_test = false;
-  MicroGPS::ImageDataset* dataset = new MicroGPS::ImageDataset(dataset_path);
+  MicroGPS::ImageDataset* dataset = new MicroGPS::ImageDataset(dataset_path, "");
   if (FLAGS_testset == "") {
     dataset->loadDatabaseImages();
     extracting_test = false;

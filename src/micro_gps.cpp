@@ -44,13 +44,18 @@ void Localization::loadImageDataset(MicroGPS::ImageDataset* image_dataset) {
     char precomputed_sift_path[256];
 
     m_image_dataset->getDatabaseImagePrecomputedFeatures(i, precomputed_feat_path);
-    m_image_dataset->getDatabaseImagePrecomputedFeatures(i, precomputed_sift_path, (const char*)("sift"));
+    m_image_dataset->getDatabaseImagePrecomputedFeatures(
+      i, 
+      precomputed_sift_path, 
+      (const char*)("key_siftgpu_desc_siftgpu_reso_0.5")
+    );
     
     // printf("image_path = %s\n", m_image_dataset->getDatabaseImagePath(i));
-    MicroGPS::Image* work_image = new MicroGPS::Image(m_image_dataset->getDatabaseImagePath(i),
-                                                      precomputed_feat_path,
-                                                      precomputed_sift_path);
-
+    MicroGPS::Image* work_image = new MicroGPS::Image(
+      m_image_dataset->getDatabaseImagePath(i),
+      precomputed_feat_path,
+      precomputed_sift_path
+    );
     Eigen::Matrix3f image_pose = m_image_dataset->getDatabaseImagePose(i);
    
     // buffer image location
@@ -169,6 +174,10 @@ void Localization::preprocessDatabaseImages(const int num_samples_per_image,
       LocalFeature* f = work_image->getLocalFeature(sel[j]);
       // printf("j = %ld\n", j);
       // printf("f->strength = %f\n", f->strength);
+      // printf("f->descriptor.size() = %d\n", f->descriptor.size());
+      if (m_features.cols() > f->descriptor.size()) {
+        m_features.conservativeResize(m_features.rows(), f->descriptor.size());
+      }
       m_features.row(cnt) = f->descriptor;
       f->global_pose = image_pose * f->local_pose;
 

@@ -9,7 +9,7 @@ namespace MicroGPS {
 
 class ImageDataset {
 public:
-  ImageDataset(const char* packed_data_path);
+  ImageDataset(const char* packed_data_path, const char* precomputed_feature_path);
   ~ImageDataset();
 
   void                          loadDatabaseImages();
@@ -32,6 +32,7 @@ public:
 
 private:
   char                          m_packed_data_path[256];
+  char                          m_precomputed_feature_path[256];
   char                          m_test_sequence_name[256];
   char                          m_precomputed_feature_suffix[256];
 

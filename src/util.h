@@ -8,6 +8,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <libgen.h>
 #include <Eigen/Dense>
 #include <iostream>
 
@@ -157,6 +158,10 @@ inline bool checkFileExists(const char* path) {
     return false;
   }
   return true;
+}
+
+inline char* getFileNameOnly(char* path) {
+  return basename(path);
 }
 
 inline void mkdirIfNotExists(const char* path) {

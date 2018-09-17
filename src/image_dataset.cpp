@@ -12,8 +12,9 @@
 namespace MicroGPS {
 
 
-ImageDataset::ImageDataset(const char* packed_data_path) {
+ImageDataset::ImageDataset(const char* packed_data_path, const char* precomputed_feature_path) {
   strcpy(m_packed_data_path,            packed_data_path);
+  strcpy(m_precomputed_feature_path,    precomputed_feature_path);
   strcpy(m_test_sequence_name,          (char*)(""));
   strcpy(m_precomputed_feature_suffix,  (char*)("sift"));
 }
@@ -101,11 +102,9 @@ void ImageDataset::loadTestSequenceByName(const char* filename) {
     char* im_path = new char[256];
     sprintf(im_path, "%s/%s", m_packed_data_path, tmp_path);
     m_test_images.push_back(im_path);
-    // printf("%s\n", im_path);
+    printf("%s\n", im_path);
   }
-
   fclose(fp);
-
 }
 
 void ImageDataset::setPrecomputedFeatureSuffix(const char* suffix) {
@@ -124,10 +123,11 @@ Eigen::Matrix3f ImageDataset::getDatabaseImagePose(const unsigned idx) const {
   return m_database_poses[idx];
 }
 
-void ImageDataset::getDatabaseImagePrecomputedFeatures(const unsigned idx, 
-                                                      char* const path, 
-                                                      const char* suffix) const
-{
+void ImageDataset::getDatabaseImagePrecomputedFeatures(
+  const unsigned idx, 
+  char* const path, 
+  const char* suffix
+) const {
   char* suffix_used;
   if (suffix) {
     suffix_used = (char*)suffix;
@@ -135,10 +135,18 @@ void ImageDataset::getDatabaseImagePrecomputedFeatures(const unsigned idx,
     suffix_used = (char*)m_precomputed_feature_suffix;
   }
 
-  sprintf(path, "%s/precomputed_features/database.%s/frame%06d.bin", 
-                  m_packed_data_path,
-                  suffix_used,
-                  idx);
+  // sprintf(path, "%s/precomputed_features/database.%s/frame%06d.bin", 
+  //                 m_packed_data_path,
+  //                 suffix_used,
+  //                 idx);
+
+  sprintf(
+    path, 
+    "%s/database.%s/%s.bin", 
+    m_precomputed_feature_path,
+    suffix_used,
+    util::getFileNameOnly(m_database_images[idx])
+  );
 
   if (!util::checkFileExists(path)) {
     sprintf(path, "");
@@ -154,10 +162,11 @@ const char* ImageDataset::getTestImagePath(const unsigned idx) const {
   return (const char*)m_test_images[idx];
 }
 
-void ImageDataset::getTestImagePrecomputedFeatures(const unsigned idx, 
-                                                    char* const path,
-                                                    const char* suffix) const
-{
+void ImageDataset::getTestImagePrecomputedFeatures(
+  const unsigned idx, 
+  char* const path,
+  const char* suffix
+) const {
   char* suffix_used;
   if (suffix) {
     suffix_used = (char*)suffix;
@@ -165,11 +174,20 @@ void ImageDataset::getTestImagePrecomputedFeatures(const unsigned idx,
     suffix_used = (char*)m_precomputed_feature_suffix;
   }
 
-  sprintf(path, "%s/precomputed_features/%s.%s/frame%06d.bin", 
-                  m_packed_data_path,
-                  m_test_sequence_name,
-                  suffix_used,
-                  idx);
+  // sprintf(path, "%s/precomputed_features/%s.%s/frame%06d.bin", 
+  //                 m_packed_data_path,
+  //                 m_test_sequence_name,
+  //                 suffix_used,
+  //                 idx);
+
+  sprintf(
+    path, 
+    "%s/%s.%s/%s.bin", 
+    m_precomputed_feature_path,
+    m_test_sequence_name,
+    suffix_used,
+    util::getFileNameOnly(m_test_images[idx])
+  );
 
   if (!util::checkFileExists(path)) {
     sprintf(path, "");

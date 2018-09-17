@@ -16,6 +16,13 @@
     "unordered_map": "cpp",
     "typeinfo": "cpp",
     "*.tcc": "cpp",
-    "cstdlib": "cpp"
+    "cstdlib": "cpp",
+    "__bit_reference": "cpp",
+    "__string": "cpp",
+    "deque": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "__mutex_base": "cpp",
+    "memory": "cpp"
   }
 }
