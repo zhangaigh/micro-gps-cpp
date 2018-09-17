@@ -23,6 +23,7 @@
     "string": "cpp",
     "string_view": "cpp",
     "__mutex_base": "cpp",
-    "memory": "cpp"
+    "memory": "cpp",
+    "stdexcept": "cpp"
   }
 }
