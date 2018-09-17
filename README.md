@@ -1,31 +1,44 @@
-# mgps-cpp
-micro-gps project c++ implementation
+# Micro-GPS
 
-What do we need?
-- SIFT feature extraction (we will use siftgpu by wu changchang)
-- kNN search (FLANN)
-- random sampling
-- SIFT feature matching
-- RANSAC alignment
-- PCA dimension reduction
+This is the C++ implementation of the Micro-GPS system presented in the paper "High-Precision Localization Using Ground Texture".
 
-Offline:
-gather descriptors
-compute global poses
-construct grids (fixed size)
-
-Online:
-match descriptors
-vote image locations
+### Prerequisites
+  - pre-compiled [SiftGPU](https://github.com/pitzer/SiftGPU)
+  - pre-compiled [FLANN](https://github.com/mariusmuja/flann)
+  - OpenCV2
+  - Eigen3
+  - GLFW3
+  - CUDA (use SiftGPU CUDA mode)
+  - gflags
 
 
-----------------
-2017-04-17 v2
+### Compiling
+First copy one of the "config*.cmake" template to "config.cmake" and modify the library paths.
+```sh
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make -j8
+```
 
-Goals:
-- better gui.cpp. the exe should support:
-  - GUI with controls
-  - GUI with parameters passed by command line
-  - pure command line
+### To launch the GUI
+```sh
+$ cd bin
+$ ./micro_gps_gui
+```
 
-- automatically use pre-extracted sift feature
+### GUI Instructions:
+- Download and extract all datasets into a folder (dataset_root).
+- Select the dataset and click "load dataset".
+- Use the "Preprocess" section to construct the feature database and stitch a low-res map (e.g., 10%).
+- Load a test sequence in the "Dataset" section.
+- Load the map in the "Dataset" section.
+- In the "Testing" section, set the options and click "reload".
+- Click "locate" to run testing on the current frame.
+
+This is a screenshot of the GUI
+![N|Solid](./gui_screenshot.png)
+
+
+### Contact
+For any question, please email Linguang Zhang (linguang@princeton.edu)
